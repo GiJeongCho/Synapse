@@ -5,8 +5,7 @@ from __future__ import annotations
 from fastapi import APIRouter
 from pydantic import BaseModel
 
-from app.rag.retriever import hybrid_retrieve
-from app.rag.reranker import rerank
+from app.services.rag import hybrid_retrieve, rerank
 
 router = APIRouter()
 
@@ -29,7 +28,7 @@ async def search_query(req: SearchRequest):
     """Search for relevant chunks using hybrid retrieval + reranking."""
     filter_expr = _build_filter(req.doc_type_filter, req.importance_filter)
 
-    candidates = hybrid_retrieve(
+    candidates = await hybrid_retrieve(
         query=req.query,
         top_k=req.top_k * 3,
         filter_expr=filter_expr,

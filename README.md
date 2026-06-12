@@ -1,164 +1,179 @@
-# Synapse — ResearchMind
+# Synapse — Multi-Agent 리서치 시스템
 
-> 주제를 던지면 AI가 스스로 파고들어 리포트까지 작성해주는 Multi-Agent 리서치 시스템
+> 주제를 던지면 AI가 스스로 파고들어 리포트까지 작성하는 Multi-Agent 리서치 플랫폼
 
-논문·뉴스·법령을 자동으로 수집·분석하고, **Adaptive Chunking** 기반 전처리와 **HITL(Human-in-the-Loop) 하이라이팅**을 통해 검색 정밀도를 극대화합니다.
-
----
-
-## 핵심 특징
-
-- **Supervisor 패턴 Multi-Agent** — LangGraph 기반 Orchestrator가 하위 에이전트(Search, Crawl, Graph, Analyst, Writer)를 동적으로 지휘
-- **Adaptive Chunking** — LREC 2026 논문 기반, 여러 청커를 병렬 실행한 뒤 5가지 내재적 지표(RC·BI·ICC·DCC·SC)로 최적 청커를 자동 선택
-- **LLM 기반 중요도 스코어링** — 위치 가중치 + 키워드 밀도 + 인용 밀도 + LLM 분류로 Core / Support / Context / Noise 4단계 레이블 부여
-- **HITL 하이라이팅** — 색 농도 기반 청크 시각화 + 사용자 레이블 수정 → Qdrant payload에 피드백 반영
-- **Vector + Graph Hybrid Retrieval** — Qdrant 시맨틱 검색 + Neo4j 관계 탐색 결합
+프로젝트명: **synapse** · 프론트: **React (Vite + TS)** · 백엔드: **FastAPI + LangGraph**
 
 ---
 
-## 기술 스택
+## 현재 상태
 
-| 레이어 | 기술 | 역할 |
-|--------|------|------|
-| Agent 오케스트레이션 | LangGraph | 조건부 루프 DAG, Supervisor 패턴 |
-| LLM | Claude API (Sonnet) | 문서 분류, 중요도 판단, 리포트 생성 |
-| Vector DB | Qdrant / Milvus Lite | 청크 임베딩 저장 및 시맨틱 검색 |
-| Graph DB | Neo4j (AuraDB) | 개념-문서-저자 관계 탐색 |
-| 임베딩 | sentence-transformers | all-MiniLM-L6-v2 (384차원) |
-| 백엔드 | FastAPI | async API + SSE 스트리밍 |
-| 프론트엔드 | Streamlit | HITL 인터페이스 프로토타입 |
-| PDF 파싱 | Docling / PyMuPDF | 구조 인식 문서 파싱 |
+| 영역 | 상태 |
+|------|------|
+| 전처리 / 문서 API / RAG 검색 | 기존 구현 유지 (`preprocessing/`, `api/documents`, `api/search`) |
+| 에이전트 / Supervisor 워크플로우 | **폴더 골격만** — 기획 확정 후 구현 |
+| React UI | **라우팅 셸 + placeholder** — 화면 기획 전 |
+
+**폴더 구조 상세**: [`docs/project-structure.md`](docs/project-structure.md)  
+**에이전트 코딩 표준**: [`docs/agent-development-standards-v2.md`](docs/agent-development-standards-v2.md)
 
 ---
 
-## 프로젝트 구조
+## 레포 구조 (요약)
 
 ```
 Synapse/
-├── backend/
-│   ├── app/
-│   │   ├── api/
-│   │   │   ├── documents.py       # 문서 업로드·조회·편집 API
-│   │   │   └── search.py          # RAG 검색 API
-│   │   ├── preprocessing/
-│   │   │   ├── chunkers/
-│   │   │   │   ├── llm_regex.py   # LLM Regex Splitter
-│   │   │   │   ├── recursive.py   # Recursive Splitter
-│   │   │   │   └── split_merge.py # Split-then-Merge Splitter
-│   │   │   ├── classifier.py      # 문서 타입 분류 (paper/news/law)
-│   │   │   ├── metrics.py         # 5가지 청크 품질 지표
-│   │   │   ├── normalize.py       # 청크 크기 정규화
-│   │   │   ├── pipeline.py        # 전처리 파이프라인 오케스트레이터
-│   │   │   └── scoring.py         # 중요도 스코어링
-│   │   ├── rag/
-│   │   │   ├── retriever.py       # 시맨틱 검색
-│   │   │   └── reranker.py        # 검색 결과 리랭킹
-│   │   ├── vectordb/
-│   │   │   └── milvus_client.py   # Vector DB 클라이언트
-│   │   ├── config.py              # 설정 관리
-│   │   └── main.py                # FastAPI 엔트리포인트
-│   └── requirements.txt
-├── frontend/
-│   └── app.py                     # Streamlit HITL 인터페이스
+├── backend/app/
+│   ├── api/              # REST · Job 접수
+│   ├── workflows/        # Supervisor (예: research/)
+│   ├── agents/           # search / crawl / graph / analyst / writer
+│   ├── services/         # RAG · workers · jobs
+│   ├── tools/            # LangChain tools
+│   ├── core/             # config · LLM · errors
+│   ├── preprocessing/    # Adaptive Chunking
+│   └── vectordb/         # Milvus
+├── frontend/src/         # React (pages · components · api · hooks)
 └── docs/
-    ├── ResearchMind_기획서.md
-    └── Adaptive_Chunking_논문정리.md
 ```
 
 ---
 
-## 전처리 파이프라인
-
-```
-문서 입력 (PDF / 뉴스 / 법령)
-       ↓
-[1] 문서 타입 분류 — 휴리스틱 + LLM 폴백
-       ├── 논문  → LLM Regex Splitter
-       ├── 법령  → Split-then-Merge (조항 단위)
-       └── 뉴스  → Recursive Splitter
-       ↓
-[2] Adaptive Chunking — 후보 청커 병렬 실행 → 5지표 채점 → 최고점 채택
-       ↓
-[3] 크기 정규화 — 과대 청크(>1,100 토큰) 분할, 과소 청크(<100 토큰) 병합
-       ↓
-[4] 중요도 스코어링 — Core / Support / Context / Noise 분류
-       ↓
-[5] HITL 검수 — 사용자 하이라이팅 조정
-       ↓
-[6] 임베딩 + Vector DB 저장
-```
-
-### 청크 품질 지표 (5 Intrinsic Metrics)
-
-| 지표 | 전체 이름 | 측정 내용 |
-|------|-----------|-----------|
-| **RC** | References Completeness | 대명사-개체 쌍이 같은 청크에 온전히 존재하는 비율 |
-| **BI** | Block Integrity | 구조 블록(표, 코드, 제목)이 깨지지 않은 비율 |
-| **ICC** | Intrachunk Cohesion | 청크 내 문장-청크 전체 임베딩 간 의미 유사도 |
-| **DCC** | Document Contextual Coherence | 청크와 주변 슬라이딩 윈도우 간 유사도 |
-| **SC** | Size Compliance | 목표 토큰 범위(100~1,100) 안에 드는 비율 |
-
----
-
-## 시작하기
+## 🚀 시작하기 (Getting Started)
 
 ### 사전 요구사항
 
-- Python 3.10+
-- (선택) Anthropic API Key — LLM 기반 분류·스코어링 활성화
+| 항목 | 버전 |
+|------|------|
+| Python | 3.10 이상 |
+| Node.js | 18 LTS 이상 (프론트엔드) |
+| npm | 9 이상 |
 
-### 설치
+선택 사항:
+
+- **Anthropic API Key** — LLM 기반 문서 분류·스코어링
+- **Docker / Docker Compose** — Neo4j 로컬 실행 시
+
+### 1. 저장소 클론
 
 ```bash
 git clone https://github.com/GiJeongCho/Synapse.git
 cd Synapse
-
-pip install -r backend/requirements.txt
 ```
 
-### 환경 변수
+### 2. 환경 변수 설정
 
-프로젝트 루트에 `.env` 파일을 생성합니다.
+프로젝트 **루트**에 `.env` 파일을 만듭니다.
+
+```bash
+cp .env.example .env
+```
+
+`.env` 를 열어 최소한 아래 값을 채웁니다.
 
 ```env
+# LLM (선택 — 없으면 휴리스틱 폴백 동작)
 ANTHROPIC_API_KEY=sk-ant-...
 
-# Neo4j (선택)
+# Vector DB (기본값: backend/synapse.db — Milvus Lite 로컬 파일)
+MILVUS_URI=./backend/synapse.db
+MILVUS_COLLECTION=synapse_chunks
+
+# Graph DB (선택 — docker-compose 로 Neo4j 기동 시)
 NEO4J_URI=bolt://localhost:7687
 NEO4J_USER=neo4j
 NEO4J_PASSWORD=your_password
 ```
 
-### 실행
+프론트엔드 전용 설정이 필요하면 `frontend/.env` 도 추가할 수 있습니다 (대부분은 Vite 프록시만으로 충분).
 
 ```bash
-# 백엔드 서버
-cd backend
-uvicorn app.main:app --reload --port 8000
-
-# 프론트엔드 (새 터미널)
-cd frontend
-streamlit run app.py
+cp frontend/.env.example frontend/.env
+# VITE_API_BASE=   # 비우면 dev 서버가 /api, /v1 을 :8000 으로 프록시
 ```
 
-### API 엔드포인트
+### 3. 백엔드 설정 및 실행
+
+```bash
+cd backend
+
+# 가상환경 생성
+python3 -m venv .venv
+
+# 가상환경 활성화
+# Linux / macOS:
+source .venv/bin/activate
+# Windows (PowerShell):
+# .venv\Scripts\Activate.ps1
+
+# 의존성 설치
+pip install -U pip
+pip install -r requirements.txt
+
+# 서버 실행 (프로젝트 루트의 .env 를 자동 로드)
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+동작 확인:
+
+```bash
+curl http://localhost:8000/health
+# {"status":"ok"}
+```
+
+API 문서: [http://localhost:8000/docs](http://localhost:8000/docs)
+
+### 4. 프론트엔드 설정 및 실행
+
+**새 터미널**에서:
+
+```bash
+cd frontend
+
+npm install
+npm run dev
+```
+
+브라우저: [http://localhost:5173](http://localhost:5173)
+
+개발 모드에서는 Vite 가 `/api`, `/v1` 요청을 `http://localhost:8000` 으로 프록시합니다. **백엔드를 먼저 띄운 뒤** 프론트를 실행하세요.
+
+프로덕션 빌드:
+
+```bash
+npm run build
+npm run preview
+```
+
+### 5. (선택) Neo4j 로컬 실행
+
+그래프 DB 연동 개발 시:
+
+```bash
+# 프로젝트 루트에서
+docker compose up -d neo4j
+```
+
+- Browser UI: [http://localhost:7474](http://localhost:7474)
+- Bolt: `bolt://localhost:7687`
+- `.env` 의 `NEO4J_PASSWORD` 를 `docker-compose.yml` 의 `NEO4J_AUTH` 와 맞춥니다.
+
+### 6. 자주 쓰는 API
 
 | Method | Path | 설명 |
 |--------|------|------|
-| `GET` | `/health` | 서버 상태 확인 |
+| `GET` | `/health` | 서버 상태 |
 | `POST` | `/api/documents/upload` | 문서 업로드 + 전처리 |
-| `GET` | `/api/documents/list` | 저장된 문서 목록 |
-| `GET` | `/api/documents/chunks/{source}` | 문서별 청크 조회 |
-| `POST` | `/api/documents/chunks/edit` | 청크 수정 + 재임베딩 |
-| `POST` | `/api/documents/chunks/delete` | 청크 삭제 |
-| `POST` | `/api/search/query` | RAG 시맨틱 검색 |
+| `GET` | `/api/documents/list` | 문서 목록 |
+| `POST` | `/api/search/query` | RAG 검색 |
 
----
+### 문제 해결
 
-## 참고 논문
-
-- **Adaptive Chunking: Optimizing Chunking-Method Selection for RAG** (LREC 2026)
-  — 5가지 내재적 품질 지표 기반의 청커 자동 선택 프레임워크
+| 증상 | 확인 |
+|----------|------|
+| `ModuleNotFoundError: app` | `backend/` 디렉터리에서 uvicorn 실행했는지 확인 |
+| 프론트에서 API 연결 실패 | 백엔드 `:8000` 실행 여부, CORS/프록시 확인 |
+| LLM 분류 미동작 | `.env` 의 `ANTHROPIC_API_KEY` 설정 |
+| Neo4j 연결 실패 | `docker compose ps`, `NEO4J_*` 값 일치 여부 |
 
 ---
 

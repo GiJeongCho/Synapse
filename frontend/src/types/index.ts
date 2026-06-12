@@ -1,0 +1,3 @@
+/** 공통 TS 타입 — 기획 확정 후 정의 */
+
+// TODO: Chunk, JobResponse, ...
