@@ -28,20 +28,13 @@ def _token_len(text: str) -> int:
 # Shared embedding helper — lazy-loaded singleton
 # ---------------------------------------------------------------------------
 
-_model = None
-
-
-def _get_model():
-    global _model
-    if _model is None:
-        from sentence_transformers import SentenceTransformer
-        _model = SentenceTransformer(settings.embedding_model)
-    return _model
-
-
 def _embed(texts: list[str]) -> np.ndarray:
-    model = _get_model()
-    return model.encode(texts, normalize_embeddings=True, show_progress_bar=False)
+    import httpx
+    url = f"{settings.embed_api_url.rstrip('/')}/embed"
+    with httpx.Client(timeout=30.0) as client:
+        resp = client.post(url, json={"texts": texts})
+        resp.raise_for_status()
+    return np.array(resp.json()["embeddings"], dtype=np.float32)
 
 
 def _cosine_sim(a: np.ndarray, b: np.ndarray) -> float:
@@ -85,6 +78,7 @@ def _detect_blocks(text: str) -> list[tuple[int, int]]:
         for m in pat.finditer(text):
             blocks.append((m.start(), m.end()))
     return blocks
+
 
 
 def block_integrity(chunks: list[str], original_text: str) -> float:
