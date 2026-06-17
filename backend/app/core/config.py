@@ -28,10 +28,8 @@ class Settings(BaseSettings):
     llm_model: str = "claude-sonnet-4-20250514"
 
     # ---- Embedding ----
-    embedding_model: str = "Qwen/Qwen3-Embedding"
-    embedding_dim: int = 1024
-    embed_api_url: str = "http://ppsystem.kro.kr:5000"
-    rerank_api_url: str = "http://ppsystem.kro.kr:5000"
+    embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2"
+    embedding_dim: int = 384
 
     # ---- Vector DB (Milvus Lite / Qdrant) ----
     milvus_uri: str = str(_BACKEND_ROOT / "synapse.db")
