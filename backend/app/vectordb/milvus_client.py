@@ -6,7 +6,6 @@ from __future__ import annotations
 
 from typing import Any
 
-import numpy as np
 from pymilvus import CollectionSchema, DataType, FieldSchema, MilvusClient
 
 from app.config import settings

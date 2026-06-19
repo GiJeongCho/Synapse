@@ -59,6 +59,7 @@ async def upload_document(file: UploadFile = File(...)):
         "chunker_used": result.chunker_used,
         "num_chunks": len(result.chunks),
         "metrics_summary": result.metrics_summary,
+        "extraction_method": "ocr" or "fitz"
     }
 
 
@@ -165,6 +166,43 @@ async def edit_chunk(req: ChunkEditRequest):
     )
     return result
 
+@router.post("/reprocess/{source:path}")
+async def reprocess_document(source: str):
+    """문서 전체를 다시 파이프라인에 돌려 청크/점수를 재계산한다."""
+    # 1. 기존 청크 삭제
+    existing = get_chunks_by_source(source)
+    if not existing:
+        raise HTTPException(status_code=404, detail="Document not found")
+
+    chunk_ids = [c["id"] for c in existing]
+    delete_chunks(chunk_ids)
+
+    # 2. 원본 파일에서 텍스트 재추출
+    upload_dir = Path(settings.upload_dir)
+    # source가 파일명이므로 업로드 폴더에서 찾기
+    candidates = list(upload_dir.glob("*"))
+    save_path = next((p for p in candidates if source in p.name), None)
+
+    if save_path is None:
+        raise HTTPException(status_code=404, detail="Original file not found")
+
+    ext = save_path.suffix.lower()
+    text = _extract_text(save_path, ext)
+
+    if not text or not text.strip():
+        raise HTTPException(status_code=400, detail="Could not extract text from file")
+
+    # 3. 전체 파이프라인 재실행
+    result = await run_pipeline(text, source=source)
+
+    return {
+        "source": result.source,
+        "doc_type": result.doc_type,
+        "chunker_used": result.chunker_used,
+        "num_chunks": len(result.chunks),
+        "metrics_summary": result.metrics_summary,
+        "reprocessed": True,
+    }
 
 @router.post("/chunks/delete")
 async def delete_chunk(req: ChunkDeleteRequest):
