@@ -387,6 +387,11 @@ MCP 도구를 표준 연결 규격으로 활용</p>
 <pre><code class="language-mermaid"><div class="mermaid">flowchart TB
     User["사용자 요구사항"]
 
+    subgraph EntryGate ["진입 게이트"]
+        Req["Requirements\nAnalyzer"]
+        RegCheck{"Agent Registry\n검색"}
+    end
+
     subgraph DualLoop ["쌍방 Supervisor 진화 루프"]
         direction TB
 
@@ -394,18 +399,18 @@ MCP 도구를 표준 연결 규격으로 활용</p>
             A_decide["전략 수립 / B 역평가"]
         end
 
-        subgraph SuperB ["Supervisor-B (Critic)"]
+        subgraph SuperB ["Supervisor-B (Critic) — 토글 가능"]
             B_eval["결과 평가 / 기준 관리"]
         end
 
         subgraph Pipeline ["에이전트 생성 파이프라인"]
-            Plan["1. Requirements Analyzer"]
             Retrieve["2. Tool Retriever"]
             Build["3. Provisioner"]
             Test["4. Evaluator"]
-            Plan --> Retrieve --> Build --> Test
+            Retrieve --> Build --> Test
         end
 
+        CriticToggle{"critic_enabled?"}
         Consensus{"합의 판정"}
     end
 
@@ -414,64 +419,117 @@ MCP 도구를 표준 연결 규격으로 활용</p>
         VectorDB["Vector DB"]
         GraphDB["Neo4j KG"]
         Docker["Docker"]
+        AgentDB[("Agent Registry\n(기존 에이전트 저장소)")]
     end
 
-    User --> A_decide
-    A_decide -->|"파이프라인 실행"| Plan
-    Test -->|"결과 전달"| B_eval
+    User --> Req
+    Req --> RegCheck
+    RegCheck -->|"기존 에이전트 존재"| Reuse["기존 에이전트 반환"]
+    RegCheck -->|"신규 생성 필요"| A_decide
+
+    A_decide -->|"파이프라인 실행"| Retrieve
+    Test --> CriticToggle
+    CriticToggle -->|"ON"| B_eval
+    CriticToggle -->|"OFF"| Deploy
+
     B_eval -->|"개선안"| A_decide
     A_decide -->|"역평가 / 기준 수정 제안"| B_eval
     B_eval --> Consensus
-    Consensus -->|"합의"| Deploy["배포"]
+    Consensus -->|"합의"| Deploy["배포 + Registry 등록"]
     Consensus -->|"미합의"| A_decide
 
+    RegCheck -.-> AgentDB
+    Deploy -.->|"신규 등록"| AgentDB
     Retrieve -.->|"MCP 검색"| MCP_Registry
     MCP_Registry -.-> VectorDB
     MCP_Registry -.-> GraphDB
     Build -.->|"환경 구성"| Docker
     Test -.->|"샌드박스 테스트"| Docker
 </div></code></pre>
-<h3 id="%EC%8C%8D%EB%B0%A9-supervisor-%EB%9D%BC%EC%9A%B4%EB%93%9C-%ED%9D%90%EB%A6%84">쌍방 Supervisor 라운드 흐름</h3>
+<h3 id="%EC%8B%A4%ED%96%89-%EB%AA%A8%EB%93%9C-%EB%B6%84%EA%B8%B0--solo-vs-dual">실행 모드 분기 — Solo vs Dual</h3>
+<pre><code class="language-mermaid"><div class="mermaid">flowchart LR
+    Start["요구사항 수신"] --> RA["Requirements\nAnalyzer"]
+    RA --> Lookup{"Agent Registry\n검색"}
+
+    Lookup -->|"HIT: 유사도 ≥ 임계값"| Found["기존 에이전트\n반환"]
+    Found --> Done["완료"]
+
+    Lookup -->|"MISS"| Mode{"critic_enabled?"}
+
+    Mode -->|"OFF — Solo 모드"| Solo
+    Mode -->|"ON — Dual 모드"| Dual
+
+    subgraph Solo ["Solo 모드 (토큰 절약)"]
+        S_pipe["Pipeline 1회 실행"] --> S_deploy["즉시 배포"]
+    end
+
+    subgraph Dual ["Dual 모드 (품질 극대화)"]
+        D_build["Builder 생성"] --> D_critic["Critic 평가"]
+        D_critic -->|"미합의"| D_build
+        D_critic -->|"합의"| D_deploy["배포"]
+    end
+
+    S_deploy --> Reg["Registry 등록"]
+    D_deploy --> Reg
+</div></code></pre>
+<h3 id="%EC%8C%8D%EB%B0%A9-supervisor-%EB%9D%BC%EC%9A%B4%EB%93%9C-%ED%9D%90%EB%A6%84-dual-%EB%AA%A8%EB%93%9C">쌍방 Supervisor 라운드 흐름 (Dual 모드)</h3>
 <pre><code class="language-mermaid"><div class="mermaid">sequenceDiagram
     participant U as 사용자
+    participant R as Agent Registry
     participant A as Supervisor-A (Builder)
     participant P as 생성 파이프라인
     participant B as Supervisor-B (Critic)
     participant C as 합의 판정
 
-    U->>A: 요구사항 입력
+    U->>R: 요구사항 입력
+    R->>R: 기존 에이전트 검색
 
-    loop 라운드 (max 5회)
-        A->>P: 전략 반영 + 파이프라인 실행
-        activate P
-        P->>P: Plan → Retrieve → Build → Test
-        P-->>A: 생성 결과 + 테스트 결과
-        deactivate P
+    alt 기존 에이전트 존재
+        R-->>U: 기존 에이전트 반환 (생성 스킵)
+    else 신규 생성 필요
+        R->>A: 요구사항 전달
 
-        A->>B: 결과 전달
-        activate B
-        B->>B: 평가 (품질, 정확도, 지연 등)
-        B-->>A: 판정 + 개선안
-        deactivate B
+        alt critic_enabled = OFF (Solo 모드)
+            A->>P: 파이프라인 1회 실행
+            P-->>A: 결과
+            A->>R: 배포 + Registry 등록
+            R-->>U: 에이전트 반환
+        else critic_enabled = ON (Dual 모드)
+            loop 라운드 (max 5회)
+                A->>P: 전략 반영 + 파이프라인 실행
+                activate P
+                P->>P: Plan → Retrieve → Build → Test
+                P-->>A: 생성 결과 + 테스트 결과
+                deactivate P
 
-        alt A가 B의 평가에 동의
-            A->>C: 수용
-        else A가 B의 기준에 이의
-            A->>B: 역평가 (기준 수정 제안)
-            activate B
-            B->>B: 제안 수용 or 거부
-            B-->>A: 수정된 기준 or 기각
-            deactivate B
-            A->>C: 재평가 요청
-        end
+                A->>B: 결과 전달
+                activate B
+                B->>B: 평가 (품질, 정확도, 지연 등)
+                B-->>A: 판정 + 개선안
+                deactivate B
 
-        C->>C: 합의 여부 판정
-        alt 합의 도달
-            C-->>U: 최종 에이전트 배포
-        else 미합의 + 상한 미도달
-            C-->>A: 다음 라운드
-        else 상한 도달 or 교착
-            C-->>U: 최선 결과로 종료
+                alt A가 B의 평가에 동의
+                    A->>C: 수용
+                else A가 B의 기준에 이의
+                    A->>B: 역평가 (기준 수정 제안)
+                    activate B
+                    B->>B: 제안 수용 or 거부
+                    B-->>A: 수정된 기준 or 기각
+                    deactivate B
+                    A->>C: 재평가 요청
+                end
+
+                C->>C: 합의 여부 판정
+                alt 합의 도달
+                    C->>R: 배포 + Registry 등록
+                    R-->>U: 최종 에이전트 반환
+                else 미합의 + 상한 미도달
+                    C-->>A: 다음 라운드
+                else 상한 도달 or 교착
+                    C->>R: 최선 결과로 배포 + Registry 등록
+                    R-->>U: 에이전트 반환
+                end
+            end
         end
     end
 </div></code></pre>
@@ -522,7 +580,72 @@ MCP 도구를 표준 연결 규격으로 활용</p>
 </tr>
 </tbody>
 </table>
-<h3 id="1-2-%ED%95%B5%EC%8B%AC-%EC%9B%90%EB%A6%AC--%22%EC%98%A4%EC%BC%80%EC%8A%A4%ED%8A%B8%EB%A0%88%EC%9D%B4%EC%85%98%EC%9D%84-%ED%8F%89%EA%B0%80%ED%95%98%EB%8A%94-%EC%98%A4%EC%BC%80%EC%8A%A4%ED%8A%B8%EB%A0%88%EC%9D%B4%EC%85%98%22">1-2. 핵심 원리 — &quot;오케스트레이션을 평가하는 오케스트레이션&quot;</h3>
+<h3 id="1-2-%EB%91%90-%EA%B0%80%EC%A7%80-%EB%B9%84%EC%9A%A9-%EC%A0%88%EA%B0%90-%EC%9B%90%EC%B9%99">1-2. 두 가지 비용 절감 원칙</h3>
+<h4 id="%EC%9B%90%EC%B9%99-a--critic-%ED%86%A0%EA%B8%80-criticenabled">원칙 A — Critic 토글 (<code>critic_enabled</code>)</h4>
+<p>Supervisor-B(Critic)는 <strong>on/off가 가능</strong>하다. 항상 쌍방 진화를 돌릴 필요는 없다.</p>
+<table>
+<thead>
+<tr>
+<th>모드</th>
+<th><code>critic_enabled</code></th>
+<th>동작</th>
+<th>토큰 비용</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Solo</strong></td>
+<td><code>false</code></td>
+<td>Builder가 파이프라인 1회 실행 → 즉시 배포</td>
+<td><strong>낮음</strong></td>
+</tr>
+<tr>
+<td><strong>Dual</strong></td>
+<td><code>true</code></td>
+<td>Builder + Critic 쌍방 진화 루프 (기존 방식)</td>
+<td>높음</td>
+</tr>
+</tbody>
+</table>
+<p>사용 지침:</p>
+<ul>
+<li><strong>프로토타이핑·단순 작업</strong> → Solo 모드로 빠르게 생성</li>
+<li><strong>프로덕션·복잡한 작업</strong> → Dual 모드로 품질 극대화</li>
+<li>설정: <code>config.meta_agent.critic_enabled = true | false</code></li>
+</ul>
+<h4 id="%EC%9B%90%EC%B9%99-b--agent-registry-%EA%B8%B0%EC%A1%B4-%EC%97%90%EC%9D%B4%EC%A0%84%ED%8A%B8-%EC%9E%AC%EC%82%AC%EC%9A%A9">원칙 B — Agent Registry (기존 에이전트 재사용)</h4>
+<p>같은 요구사항이 들어오면 <strong>이미 만들어진 에이전트를 재사용</strong>한다. 재생성은 낭비다.</p>
+<pre class="hljs"><code><div>요구사항 수신 → Requirements Analyzer → Agent Registry 검색
+                                          ├── HIT  → 기존 에이전트 반환 (생성 스킵)
+                                          └── MISS → 신규 생성 → 배포 후 Registry 등록
+</div></code></pre>
+<table>
+<thead>
+<tr>
+<th>항목</th>
+<th>설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>저장 대상</strong></td>
+<td>에이전트 명세, 시스템 프롬프트, MCP 도구 목록, 프로젝트 파일, 테스트 결과</td>
+</tr>
+<tr>
+<td><strong>매칭 기준</strong></td>
+<td>요구사항 임베딩 유사도 ≥ 임계값 (<code>REGISTRY_SIMILARITY_THRESHOLD</code>, 기본 0.85)</td>
+</tr>
+<tr>
+<td><strong>저장소</strong></td>
+<td>Vector DB (Milvus) — 요구사항 임베딩으로 유사 에이전트 검색</td>
+</tr>
+<tr>
+<td><strong>갱신</strong></td>
+<td>Dual 모드에서 더 나은 결과가 나오면 기존 레코드를 버전업</td>
+</tr>
+</tbody>
+</table>
+<h3 id="1-3-%ED%95%B5%EC%8B%AC-%EC%9B%90%EB%A6%AC--%22%EC%98%A4%EC%BC%80%EC%8A%A4%ED%8A%B8%EB%A0%88%EC%9D%B4%EC%85%98%EC%9D%84-%ED%8F%89%EA%B0%80%ED%95%98%EB%8A%94-%EC%98%A4%EC%BC%80%EC%8A%A4%ED%8A%B8%EB%A0%88%EC%9D%B4%EC%85%98%22">1-3. 핵심 원리 — &quot;오케스트레이션을 평가하는 오케스트레이션&quot;</h3>
 <p>이 시스템의 본질은 <strong>두 Supervisor가 서로를 평가하고 개선하면서 함께 진화</strong>하는 것이다.</p>
 <p>한쪽이 만들면 다른 쪽이 평가하고, 평가 기준 자체도 상대가 고쳐줄 수 있다. 이 왕복이 반복되면서 산출물과 평가 기준이 <strong>동시에 진화</strong>한다.</p>
 <pre class="hljs"><code><div>Supervisor-A (Builder)          Supervisor-B (Critic)
@@ -651,14 +774,29 @@ MCP 도구를 표준 연결 규격으로 활용</p>
 </div></code></pre>
 <hr>
 <h2 id="4-%EC%98%A4%EC%BC%80%EC%8A%A4%ED%8A%B8%EB%A0%88%EC%9D%B4%EC%85%98-%EC%84%A4%EA%B3%84--%EC%8C%8D%EB%B0%A9-supervisor">4. 오케스트레이션 설계 — 쌍방 Supervisor</h2>
+<h3 id="4-0-%EC%A7%84%EC%9E%85-%ED%9D%90%EB%A6%84--registry-%EC%A1%B0%ED%9A%8C--%EB%AA%A8%EB%93%9C-%EB%B6%84%EA%B8%B0">4-0. 진입 흐름 — Registry 조회 + 모드 분기</h3>
+<p>모든 요청은 생성 전에 <strong>두 단계 게이트</strong>를 거친다.</p>
+<pre class="hljs"><code><div>[요구사항]
+    ↓
+[1. Requirements Analyzer] — 에이전트 명세 생성
+    ↓
+[2. Agent Registry 조회] — 기존 에이전트 유사도 검색 (Milvus)
+    ├── HIT (유사도 ≥ 0.85)  → 기존 에이전트 반환, 생성 스킵
+    └── MISS
+         ↓
+    [3. 모드 분기]
+         ├── critic_enabled = false  → Solo 모드 (파이프라인 1회 → 즉시 배포)
+         └── critic_enabled = true   → Dual 모드 (쌍방 진화 루프)
+</div></code></pre>
 <h3 id="4-1-%EA%B5%AC%EC%A1%B0--%EC%84%9C%EB%A1%9C%EB%A5%BC-%ED%8F%89%EA%B0%80%ED%95%98%EB%8A%94-%EB%91%90-supervisor">4-1. 구조 — 서로를 평가하는 두 Supervisor</h3>
-<p>고정된 <strong>Supervisor 2개</strong>가 서로의 산출물과 전략을 평가·수정하며 합의에 도달한다.</p>
+<p>고정된 <strong>Supervisor 2개</strong>가 서로의 산출물과 전략을 평가·수정하며 합의에 도달한다.
+Critic은 <code>critic_enabled</code> 설정으로 <strong>on/off 토글 가능</strong>하다.</p>
 <pre class="hljs"><code><div>┌──────────────────────────────────────────────────────────────┐
 │                        진화 루프                              │
 │                                                              │
 │   ┌─────────────────────┐     ┌─────────────────────┐       │
 │   │  Supervisor-A       │     │  Supervisor-B       │       │
-│   │  (Builder)          │     │  (Critic)           │       │
+│   │  (Builder)          │     │  (Critic) 🔛/🔴     │       │
 │   │                     │     │                     │       │
 │   │  - 에이전트 생성     │ ──→ │  - 결과 평가         │       │
 │   │  - 전략 수립         │     │  - 개선안 제시       │       │
@@ -668,7 +806,7 @@ MCP 도구를 표준 연결 규격으로 활용</p>
 │            │                           │                     │
 │            └───── 합의 도달 ────────────┘                     │
 │                      ↓                                       │
-│                   Deploy                                     │
+│              Deploy + Registry 등록                           │
 └──────────────────────────────────────────────────────────────┘
 </div></code></pre>
 <table>
@@ -676,6 +814,7 @@ MCP 도구를 표준 연결 규격으로 활용</p>
 <tr>
 <th>Supervisor</th>
 <th>역할</th>
+<th>토글</th>
 <th>모델 전략</th>
 </tr>
 </thead>
@@ -683,11 +822,13 @@ MCP 도구를 표준 연결 규격으로 활용</p>
 <tr>
 <td><strong>A (Builder)</strong></td>
 <td>에이전트를 만들고, 전략을 세우고, B의 평가를 역평가한다</td>
+<td>항상 ON</td>
 <td><strong>경량 모델</strong> (빈번한 생성·수정 작업)</td>
 </tr>
 <tr>
 <td><strong>B (Critic)</strong></td>
 <td>A의 결과를 평가하고, 개선안을 제시하고, 평가 기준을 관리한다</td>
+<td><strong>ON/OFF 가능</strong></td>
 <td><strong>경량 모델</strong> (빈번한 평가 작업)</td>
 </tr>
 </tbody>
@@ -906,6 +1047,16 @@ MCP 도구를 표준 연결 규격으로 활용</p>
 <td>누적 토큰/비용이 임계값 초과</td>
 <td>강제 종료 + 경고</td>
 </tr>
+<tr>
+<td>Critic OFF</td>
+<td><code>critic_enabled = false</code></td>
+<td>라운드 가드 자체가 불필요 (Solo 모드 = 1회 실행)</td>
+</tr>
+<tr>
+<td>Registry HIT</td>
+<td>기존 에이전트 유사도 ≥ 임계값</td>
+<td>파이프라인 자체를 스킵 (토큰 비용 0)</td>
+</tr>
 </tbody>
 </table>
 <h3 id="5-3-%EA%B8%B0%EC%A1%B4-%ED%91%9C%EC%A4%80%EA%B3%BC%EC%9D%98-%EC%A0%95%ED%95%A9">5-3. 기존 표준과의 정합</h3>
@@ -934,9 +1085,10 @@ MCP 도구를 표준 연결 규격으로 활용</p>
 │   ├── meta_supervisor/
 │   │   ├── nodes/
 │   │   │   ├── builder_supervisor.py    # Supervisor-A (Builder)
-│   │   │   └── critic_supervisor.py     # Supervisor-B (Critic)
-│   │   ├── graph.py                     # create_dual_supervisor_workflow()
-│   │   ├── state.py                     # DualSupervisorState
+│   │   │   ├── critic_supervisor.py     # Supervisor-B (Critic) — 토글 가능
+│   │   │   └── registry_lookup.py       # Agent Registry 조회 노드
+│   │   ├── graph.py                     # create_meta_orchestrator() + create_dual_supervisor_workflow()
+│   │   ├── state.py                     # DualSupervisorState + AgentRegistryRecord
 │   │   └── prompts.py                   # A/B 각각의 시스템 프롬프트
 │   │
 │   ├── search_agent/
@@ -944,9 +1096,13 @@ MCP 도구를 표준 연결 규격으로 활용</p>
 │   └── ...
 │
 ├── services/
-│   └── mcp/
-│       ├── registry.py              # MCP 도구 명세 관리 (KG/Vector DB)
-│       └── schema_store.py          # MCP 스키마 저장·검색
+│   ├── mcp/
+│   │   ├── registry.py              # MCP 도구 명세 관리 (KG/Vector DB)
+│   │   └── schema_store.py          # MCP 스키마 저장·검색
+│   │
+│   └── agent_registry/
+│       ├── store.py                 # Agent Registry CRUD (Milvus 기반)
+│       └── matcher.py               # 요구사항 임베딩 유사도 매칭
 │
 └── tools/
     └── mcp/
@@ -974,7 +1130,29 @@ MCP 도구를 표준 연결 규격으로 활용</p>
     })
     <span class="hljs-keyword">return</span> workflow.compile()
 </div></code></pre>
-<p><strong>쌍방 Supervisor 루프</strong> (진화의 본체):</p>
+<p><strong>최상위 워크플로우</strong> (Registry 조회 + 모드 분기):</p>
+<pre class="hljs"><code><div><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">create_meta_orchestrator</span><span class="hljs-params">()</span>:</span>
+    workflow = StateGraph(DualSupervisorState)
+
+    workflow.add_node(<span class="hljs-string">"analyze"</span>, run_requirements_analyzer)
+    workflow.add_node(<span class="hljs-string">"registry_lookup"</span>, run_registry_lookup)
+    workflow.add_node(<span class="hljs-string">"solo_pipeline"</span>, run_solo_pipeline)        <span class="hljs-comment"># Solo 모드: 파이프라인 1회</span>
+    workflow.add_node(<span class="hljs-string">"dual_loop"</span>, create_dual_supervisor_workflow())  <span class="hljs-comment"># Dual 모드: 쌍방 진화</span>
+    workflow.add_node(<span class="hljs-string">"register"</span>, run_register_agent)            <span class="hljs-comment"># 배포 후 Registry 등록</span>
+
+    workflow.set_entry_point(<span class="hljs-string">"analyze"</span>)
+    workflow.add_edge(<span class="hljs-string">"analyze"</span>, <span class="hljs-string">"registry_lookup"</span>)
+    workflow.add_conditional_edges(<span class="hljs-string">"registry_lookup"</span>, route_after_lookup, {
+        <span class="hljs-string">"hit"</span>: END,                          <span class="hljs-comment"># 기존 에이전트 반환</span>
+        <span class="hljs-string">"miss_solo"</span>: <span class="hljs-string">"solo_pipeline"</span>,        <span class="hljs-comment"># critic_enabled=false</span>
+        <span class="hljs-string">"miss_dual"</span>: <span class="hljs-string">"dual_loop"</span>,            <span class="hljs-comment"># critic_enabled=true</span>
+    })
+    workflow.add_edge(<span class="hljs-string">"solo_pipeline"</span>, <span class="hljs-string">"register"</span>)
+    workflow.add_edge(<span class="hljs-string">"dual_loop"</span>, <span class="hljs-string">"register"</span>)
+    workflow.add_edge(<span class="hljs-string">"register"</span>, END)
+    <span class="hljs-keyword">return</span> workflow.compile()
+</div></code></pre>
+<p><strong>쌍방 Supervisor 루프</strong> (Dual 모드에서만 실행):</p>
 <pre class="hljs"><code><div><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">create_dual_supervisor_workflow</span><span class="hljs-params">()</span>:</span>
     workflow = StateGraph(DualSupervisorState)
 
@@ -1033,25 +1211,48 @@ MCP 도구를 표준 연결 규격으로 활용</p>
     job_id: str
     user_request: str
 
+    <span class="hljs-comment"># --- 실행 모드 ---</span>
+    critic_enabled: bool                           <span class="hljs-comment"># Critic on/off 토글 (기본 True)</span>
+
+    <span class="hljs-comment"># --- Agent Registry ---</span>
+    registry_hit: bool                             <span class="hljs-comment"># 기존 에이전트 매칭 여부</span>
+    registry_match: Optional[dict]                 <span class="hljs-comment"># 매칭된 기존 에이전트 (hit 시)</span>
+    registry_similarity: float                     <span class="hljs-comment"># 매칭 유사도 점수</span>
+
     <span class="hljs-comment"># 라운드 추적</span>
-    round: int                                    <span class="hljs-comment"># 현재 라운드 (0부터)</span>
-    max_rounds: int                               <span class="hljs-comment"># 상한 (기본 5)</span>
-    history: Annotated[list[dict], operator.add]   <span class="hljs-comment"># 라운드별 이력 누적</span>
+    round: int                                     <span class="hljs-comment"># 현재 라운드 (0부터)</span>
+    max_rounds: int                                <span class="hljs-comment"># 상한 (기본 5)</span>
+    history: Annotated[list[dict], operator.add]    <span class="hljs-comment"># 라운드별 이력 누적</span>
 
     <span class="hljs-comment"># Supervisor-A (Builder) 산출물</span>
-    current_result: Optional[dict]                 <span class="hljs-comment"># 생성된 에이전트 + 테스트 결과</span>
-    builder_strategy: dict                         <span class="hljs-comment"># A의 현재 전략 (모델, 도구, 프롬프트)</span>
-    counter_review: Optional[dict]                 <span class="hljs-comment"># A → B 역평가 (기준 수정 제안 등)</span>
+    current_result: Optional[dict]                  <span class="hljs-comment"># 생성된 에이전트 + 테스트 결과</span>
+    builder_strategy: dict                          <span class="hljs-comment"># A의 현재 전략 (모델, 도구, 프롬프트)</span>
+    counter_review: Optional[dict]                  <span class="hljs-comment"># A → B 역평가 (기준 수정 제안 등)</span>
 
-    <span class="hljs-comment"># Supervisor-B (Critic) 산출물</span>
-    evaluation: Optional[dict]                     <span class="hljs-comment"># B의 평가 결과</span>
-    improvement_plan: Optional[dict]               <span class="hljs-comment"># B의 개선안</span>
-    eval_criteria: dict                            <span class="hljs-comment"># B의 평가 기준 (라운드마다 수정 가능)</span>
+    <span class="hljs-comment"># Supervisor-B (Critic) 산출물 — critic_enabled=true 일 때만 사용</span>
+    evaluation: Optional[dict]                      <span class="hljs-comment"># B의 평가 결과</span>
+    improvement_plan: Optional[dict]                <span class="hljs-comment"># B의 개선안</span>
+    eval_criteria: dict                             <span class="hljs-comment"># B의 평가 기준 (라운드마다 수정 가능)</span>
 
     <span class="hljs-comment"># 합의</span>
-    is_agreed: bool                                <span class="hljs-comment"># 양측 합의 여부</span>
-    best_result: Optional[dict]                    <span class="hljs-comment"># 전 라운드 중 최고 결과</span>
-    stale_count: int                               <span class="hljs-comment"># 연속 무변경 카운트 (교착 감지)</span>
+    is_agreed: bool                                 <span class="hljs-comment"># 양측 합의 여부</span>
+    best_result: Optional[dict]                     <span class="hljs-comment"># 전 라운드 중 최고 결과</span>
+    stale_count: int                                <span class="hljs-comment"># 연속 무변경 카운트 (교착 감지)</span>
+
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">AgentRegistryRecord</span><span class="hljs-params">(TypedDict)</span>:</span>
+    <span class="hljs-string">"""Agent Registry에 저장되는 에이전트 레코드"""</span>
+    agent_id: str                                   <span class="hljs-comment"># 고유 ID</span>
+    user_request: str                               <span class="hljs-comment"># 원본 요구사항</span>
+    request_embedding: list[float]                  <span class="hljs-comment"># 요구사항 임베딩 벡터</span>
+    agent_spec: dict                                <span class="hljs-comment"># 에이전트 명세</span>
+    system_prompt: str                              <span class="hljs-comment"># 시스템 프롬프트</span>
+    mcp_tools: list[dict]                           <span class="hljs-comment"># MCP 도구 목록</span>
+    project_files: dict                             <span class="hljs-comment"># 생성된 코드/설정 파일</span>
+    test_result: dict                               <span class="hljs-comment"># 최종 테스트 결과</span>
+    created_at: str                                 <span class="hljs-comment"># 생성 시각</span>
+    version: int                                    <span class="hljs-comment"># 버전 (Dual 모드 재배포 시 증가)</span>
+    mode: str                                       <span class="hljs-comment"># "solo" | "dual"</span>
 </div></code></pre>
 <h3 id="6-4-%ED%95%B4%EA%B2%B0%ED%95%B4%EC%95%BC-%ED%95%A0-%EC%84%A4%EA%B3%84-%EA%B3%BC%EC%A0%9C">6-4. 해결해야 할 설계 과제</h3>
 <table>
@@ -1096,6 +1297,21 @@ MCP 도구를 표준 연결 규격으로 활용</p>
 <tr>
 <td>역평가 범위</td>
 <td>A가 B의 어디까지 건드릴 수 있는지 (기준만? 프롬프트도? B의 모델도?)</td>
+<td>미정</td>
+</tr>
+<tr>
+<td>Registry 유사도 임계값</td>
+<td><code>REGISTRY_SIMILARITY_THRESHOLD</code> 최적값 (0.85가 적절한지, 도메인별 차별화 필요?)</td>
+<td>미정</td>
+</tr>
+<tr>
+<td>Registry 버전 관리</td>
+<td>Dual 모드로 더 나은 결과가 나왔을 때 기존 레코드 업데이트 vs 버전 분기 전략</td>
+<td>미정</td>
+</tr>
+<tr>
+<td>Critic 자동 토글</td>
+<td>작업 복잡도에 따라 <code>critic_enabled</code>를 자동으로 판단하는 휴리스틱 가능 여부</td>
 <td>미정</td>
 </tr>
 </tbody>
