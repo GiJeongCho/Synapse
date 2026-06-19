@@ -33,6 +33,9 @@ class Settings(BaseSettings):
     embed_api_url: str = "http://ppsystem.kro.kr:5000"
     rerank_api_url: str = "http://ppsystem.kro.kr:5000"
 
+    # ---- OCR API ----
+    ocr_api_url: str = "http://ppsystem.kro.kr:5005"
+
     # ---- Vector DB (Milvus Lite / Qdrant) ----
     milvus_uri: str = str(_BACKEND_ROOT / "synapse.db")
     milvus_collection: str = "synapse_chunks"
