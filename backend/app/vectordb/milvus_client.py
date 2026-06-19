@@ -1,14 +1,12 @@
 """Milvus vector DB client — collection schema, upsert, search, delete.
 
-Uses MilvusClient (works with both Milvus Lite local .db and remote server).
-Embedding is delegated to the external FastAPI embed service (settings.embed_api_url)."""
+Uses MilvusClient (works with both Milvus Lite local .db and remote server)."""
 
 from __future__ import annotations
 
 from typing import Any
 
-import httpx
-from pymilvus import MilvusClient
+from pymilvus import CollectionSchema, DataType, FieldSchema, MilvusClient
 
 from app.config import settings
 
@@ -38,17 +36,16 @@ def ensure_collection() -> None:
 
 
 # ---------------------------------------------------------------------------
-# Embedding helper — external FastAPI service
+# Embedding helper — lazy singleton
 # ---------------------------------------------------------------------------
-
 def embed_texts(texts: list[str]) -> list[list[float]]:
     """Embed a batch of texts via the external embed API and return float vectors."""
+    import httpx
     url = f"{settings.embed_api_url.rstrip('/')}/embed"
     with httpx.Client(timeout=30.0) as client:
         resp = client.post(url, json={"texts": texts})
         resp.raise_for_status()
     return resp.json()["embeddings"]
-
 
 # ---------------------------------------------------------------------------
 # CRUD

@@ -37,6 +37,8 @@ _HEURISTIC_PATTERNS: dict[DocType, list[re.Pattern]] = {
     ],
     DocType.LAW: [
         re.compile(r"제\s*\d+\s*조"),
+        re.compile(r"제\s*\d+\s*[장절]"),       # 제1장, 제2절
+        re.compile(r"규정\s*제\d+호"),            # 규정 제600호
         re.compile(r"(?i)\b(?:article|section)\s+\d+"),
         re.compile(r"(?i)\b법률\b"),
         re.compile(r"(?i)\b시행령\b"),
@@ -48,7 +50,6 @@ _HEURISTIC_PATTERNS: dict[DocType, list[re.Pattern]] = {
         re.compile(r"(?i)\b특파원\b"),
         re.compile(r"(?i)\breporter\b"),
         re.compile(r"(?i)\b뉴스\b"),
-        re.compile(r"\d{4}[-/.]\d{1,2}[-/.]\d{1,2}"),
     ],
 }
 

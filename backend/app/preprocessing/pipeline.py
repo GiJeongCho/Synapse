@@ -46,17 +46,41 @@ def _chunk_id(source: str, idx: int) -> str:
     return f"chunk_{h}_{idx:04d}"
 
 
-def _detect_section(chunk_text: str) -> str | None:
+_SECTION_PATTERNS: dict[str, list[str]] = {
+    "law": [
+        r"제\s*\d+\s*[장절]\s+(.+)",   # 제1장 총칙, 제2절 감사인의 의무
+    ],
+    "report": [
+        r"^[IVX]+\.\s+(.+)",            # I. 서론
+        r"^\d+\.\s+(.+)",               # 1. 개요
+    ],
+    "manual": [
+        r"^\d+\.\d+\s+(.+)",            # 1.1 설치 방법
+    ],
+}
+
+_ENGLISH_SECTIONS = [
+    "abstract", "introduction", "method", "methodology",
+    "results", "discussion", "conclusion", "references", "acknowledgement",
+]
+
+def _detect_section(chunk_text: str, doc_type: str = "paper") -> str | None:
     """Try to detect which section a chunk belongs to from its content."""
     import re
+
+    for pattern in _SECTION_PATTERNS.get(doc_type, []):
+        match = re.search(pattern, chunk_text, re.MULTILINE)
+        if match:
+            return match.group(1).strip()
+
     heading = re.search(r"^#{1,3}\s+(.+)", chunk_text, re.MULTILINE)
     if heading:
         return heading.group(1).strip().lower()
 
-    for section_name in ["abstract", "introduction", "method", "results",
-                         "discussion", "conclusion", "references", "acknowledgement"]:
+    for section_name in _ENGLISH_SECTIONS:
         if section_name in chunk_text[:200].lower():
             return section_name
+
     return None
 
 
@@ -119,7 +143,7 @@ async def run_pipeline(
     # --- 4. Score importance for each chunk ---
     processed: list[ProcessedChunk] = []
     for i, chunk_text in enumerate(best_chunks):
-        section = _detect_section(chunk_text)
+        section = _detect_section(chunk_text, doc_type=doc_type.value)
         importance = score_chunk_sync(
             chunk_text,
             section=section,
@@ -171,7 +195,7 @@ async def run_pipeline(
 def reembed_and_upsert(chunk_id: str, new_text: str, source: str, doc_type: str) -> dict:
     """Re-embed a single edited chunk and upsert it back to Milvus."""
     vectors = embed_texts([new_text])
-    section = _detect_section(new_text)
+    section = _detect_section(new_text, doc_type=doc_type)
 
     per_chunk_metrics = compute_metrics([new_text], new_text, compute_rc=False)
     importance = score_chunk_sync(
