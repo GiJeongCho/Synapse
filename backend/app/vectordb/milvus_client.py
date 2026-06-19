@@ -1,0 +1,162 @@
+"""Milvus vector DB client — collection schema, upsert, search, delete.
+
+Uses MilvusClient (works with both Milvus Lite local .db and remote server)."""
+
+from __future__ import annotations
+
+from typing import Any
+
+import numpy as np
+from pymilvus import CollectionSchema, DataType, FieldSchema, MilvusClient
+
+from app.config import settings
+
+_client: MilvusClient | None = None
+
+
+def get_client() -> MilvusClient:
+    global _client
+    if _client is None:
+        _client = MilvusClient(uri=settings.milvus_uri)
+    return _client
+
+
+def ensure_collection() -> None:
+    """Create the collection if it does not already exist."""
+    client = get_client()
+    if client.has_collection(settings.milvus_collection):
+        return
+
+    client.create_collection(
+        collection_name=settings.milvus_collection,
+        dimension=settings.embedding_dim,
+        auto_id=False,
+        id_type="string",
+        max_length=256,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Embedding helper — lazy singleton
+# ---------------------------------------------------------------------------
+
+_model = None
+
+
+def _get_embed_model():
+    global _model
+    if _model is None:
+        from sentence_transformers import SentenceTransformer
+        _model = SentenceTransformer(settings.embedding_model)
+    return _model
+
+
+def embed_texts(texts: list[str]) -> list[list[float]]:
+    """Embed a batch of texts and return list of float vectors."""
+    model = _get_embed_model()
+    vectors = model.encode(texts, normalize_embeddings=True, show_progress_bar=False)
+    return vectors.tolist()
+
+
+# ---------------------------------------------------------------------------
+# CRUD
+# ---------------------------------------------------------------------------
+
+def upsert_chunks(
+    chunk_ids: list[str],
+    texts: list[str],
+    vectors: list[list[float]],
+    payloads: list[dict[str, Any]],
+) -> None:
+    """Insert or update chunks with their embeddings and metadata."""
+    ensure_collection()
+    client = get_client()
+
+    data = []
+    for cid, text, vec, payload in zip(chunk_ids, texts, vectors, payloads):
+        row = {
+            "id": cid,
+            "vector": vec,
+            "text": text,
+            **payload,
+        }
+        data.append(row)
+
+    client.upsert(collection_name=settings.milvus_collection, data=data)
+
+
+def search(
+    query_vector: list[float],
+    top_k: int = 10,
+    filter_expr: str | None = None,
+    output_fields: list[str] | None = None,
+) -> list[dict]:
+    """Semantic similarity search. Returns list of hit dicts."""
+    ensure_collection()
+    client = get_client()
+
+    if output_fields is None:
+        output_fields = ["text", "source", "doc_type", "importance", "importance_score", "color_intensity"]
+
+    results = client.search(
+        collection_name=settings.milvus_collection,
+        data=[query_vector],
+        limit=top_k,
+        filter=filter_expr or "",
+        output_fields=output_fields,
+    )
+
+    hits: list[dict] = []
+    for hit in results[0]:
+        entry = {"id": hit["id"], "score": hit["distance"]}
+        entry.update(hit.get("entity", {}))
+        hits.append(entry)
+    return hits
+
+
+def delete_chunks(chunk_ids: list[str]) -> None:
+    """Delete chunks by ID."""
+    client = get_client()
+    client.delete(
+        collection_name=settings.milvus_collection,
+        ids=chunk_ids,
+    )
+
+
+def get_chunks_by_source(source: str) -> list[dict]:
+    """Retrieve all chunks belonging to a specific document source."""
+    ensure_collection()
+    client = get_client()
+
+    results = client.query(
+        collection_name=settings.milvus_collection,
+        filter=f'source == "{source}"',
+        output_fields=[
+            "text", "source", "doc_type", "section",
+            "chunk_scores_total", "chunker_used",
+            "importance", "importance_score", "color_intensity",
+            "user_adjusted",
+        ],
+    )
+    return results
+
+
+def list_sources() -> list[dict]:
+    """List distinct document sources in the collection."""
+    ensure_collection()
+    client = get_client()
+
+    results = client.query(
+        collection_name=settings.milvus_collection,
+        filter="",
+        output_fields=["source", "doc_type"],
+        limit=1000,
+    )
+
+    seen: dict[str, str] = {}
+    for r in results:
+        src = r.get("source", "")
+        if src and src not in seen:
+            seen[src] = r.get("doc_type", "unknown")
+
+    return [{"source": s, "doc_type": dt} for s, dt in seen.items()]
