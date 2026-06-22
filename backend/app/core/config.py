@@ -60,6 +60,14 @@ class Settings(BaseSettings):
     max_iteration: int = 3
     callback_url: str = ""
 
+    # ---- Meta-Agent ----
+    meta_critic_enabled: bool = True
+    meta_max_rounds: int = 5
+    meta_max_pipeline_retries: int = 3
+    meta_registry_similarity_threshold: float = 0.85
+    meta_registry_collection: str = "synapse_agent_registry"
+    meta_mcp_collection: str = "synapse_mcp_tools"
+
     # ---- 업로드 ----
     upload_dir: str = str(_BACKEND_ROOT / "uploads")
 
@@ -109,6 +117,18 @@ class Settings(BaseSettings):
 
     @property
     def WRITER_AGENT(self) -> Dict[str, Any]:
+        return self._agent_cfg()
+
+    @property
+    def META_AGENT(self) -> Dict[str, Any]:
+        return self._agent_cfg()
+
+    @property
+    def META_BUILDER_AGENT(self) -> Dict[str, Any]:
+        return self._agent_cfg()
+
+    @property
+    def META_CRITIC_AGENT(self) -> Dict[str, Any]:
         return self._agent_cfg()
 
 
