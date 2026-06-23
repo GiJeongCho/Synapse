@@ -46,17 +46,31 @@ def _chunk_id(source: str, idx: int) -> str:
     return f"chunk_{h}_{idx:04d}"
 
 
-def _detect_section(chunk_text: str) -> str | None:
-    """Try to detect which section a chunk belongs to from its content."""
-    import re
-    heading = re.search(r"^#{1,3}\s+(.+)", chunk_text, re.MULTILINE)
-    if heading:
-        return heading.group(1).strip().lower()
+_SECTION_PATTERNS = {
+    "law": [
+        (r"제\s*(\d+)\s*장\s*(.+)", "장"),
+        (r"제\s*(\d+)\s*절\s*(.+)", "절"),
+        (r"제\s*(\d+)\s*조", "조"),
+    ],
+    "paper": [
+        (r"^#{1,3}\s+(.+)", None),
+    ],
+    "news": [],
+}
 
-    for section_name in ["abstract", "introduction", "method", "results",
-                         "discussion", "conclusion", "references", "acknowledgement"]:
-        if section_name in chunk_text[:200].lower():
-            return section_name
+def _detect_section(chunk_text: str, doc_type: str = "paper") -> str | None:
+    import re
+    patterns = _SECTION_PATTERNS.get(doc_type, [])
+    for pattern, label in patterns:
+        m = re.search(pattern, chunk_text[:300], re.MULTILINE)
+        if m:
+            return m.group(0).strip()
+
+    # 영어 섹션명 폴백
+    for name in ["abstract", "introduction", "method", "results",
+                 "discussion", "conclusion", "references"]:
+        if name in chunk_text[:200].lower():
+            return name
     return None
 
 
