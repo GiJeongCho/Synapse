@@ -64,7 +64,7 @@ async def upload_document(file: UploadFile = File(...)):
 
 
 def _extract_text(path: Path, ext: str) -> str:
-    """fitz로 먼저 추출, OCR 필요하면 외부 API 호출."""
+    """fitz로 먼저 추출, 품질이 낮으면 외부 OCR API 호출."""
     if ext == ".pdf":
         text = _extract_with_fitz(path)
         if _needs_ocr(text):
@@ -74,6 +74,42 @@ def _extract_text(path: Path, ext: str) -> str:
         return text
     return path.read_text(encoding="utf-8", errors="replace")
 
+
+def _extract_with_fitz(path: Path) -> str:
+    """fitz(PyMuPDF)로 텍스트 추출."""
+    try:
+        import fitz
+        doc = fitz.open(str(path))
+        return "\n\n".join(page.get_text() for page in doc)
+    except Exception:
+        return ""
+
+
+def _needs_ocr(text: str) -> bool:
+    """텍스트 품질이 낮으면 OCR 필요 판단."""
+    if not text or len(text.strip()) < 100:
+        return True
+    garbled = text.count("\ufffd")  # 깨진 문자(?) 개수
+    if len(text) > 0 and garbled / len(text) > 0.05:
+        return True
+    return False
+
+
+def _extract_via_ocr(path: Path) -> str:
+    """외부 OCR API 호출 → 마크다운 텍스트 반환."""
+    import httpx
+    try:
+        with open(path, "rb") as f:
+            resp = httpx.post(
+                f"{settings.ocr_api_url}/ocr/process",
+                files={"file": (path.name, f, "application/pdf")},
+                timeout=120.0,
+            )
+        resp.raise_for_status()
+        data = resp.json()
+        return data.get("markdown", data.get("text", ""))
+    except Exception:
+        return ""
 
 def _extract_with_fitz(path: Path) -> str:
     try:

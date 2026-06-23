@@ -69,8 +69,9 @@ async def generate_regex_pattern(text: str) -> str:
 
 
 def _split_with_pattern(text: str, pattern: str) -> list[str]:
-    """Apply the regex pattern and return non-empty chunks."""
-    parts = re.split(pattern, text)
+    # 캡처 그룹 → 비캡처 그룹으로 변환 (구분자가 청크에 포함되는 버그 방지)
+    non_capturing = re.sub(r"\((?!\?)", "(?:", pattern)
+    parts = re.split(non_capturing, text)
     return [p.strip() for p in parts if p and p.strip()]
 
 
