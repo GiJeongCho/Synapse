@@ -28,20 +28,16 @@ def _token_len(text: str) -> int:
 # Shared embedding helper — lazy-loaded singleton
 # ---------------------------------------------------------------------------
 
-_model = None
-
-
-def _get_model():
-    global _model
-    if _model is None:
-        from sentence_transformers import SentenceTransformer
-        _model = SentenceTransformer(settings.embedding_model)
-    return _model
-
-
 def _embed(texts: list[str]) -> np.ndarray:
-    model = _get_model()
-    return model.encode(texts, normalize_embeddings=True, show_progress_bar=False)
+    """외부 임베딩 API 호출."""
+    import httpx
+    resp = httpx.post(
+        f"{settings.embed_api_url}/embed",
+        json={"texts": texts},
+        timeout=60.0,
+    )
+    resp.raise_for_status()
+    return np.array(resp.json()["embeddings"], dtype=np.float32)
 
 
 def _cosine_sim(a: np.ndarray, b: np.ndarray) -> float:
