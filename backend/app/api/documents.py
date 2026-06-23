@@ -59,6 +59,7 @@ async def upload_document(file: UploadFile = File(...)):
         "chunker_used": result.chunker_used,
         "num_chunks": len(result.chunks),
         "metrics_summary": result.metrics_summary,
+        "all_chunker_metrics": result.all_chunker_metrics,
     }
 
 

@@ -39,6 +39,7 @@ class PipelineResult:
     chunker_used: str
     chunks: list[ProcessedChunk]
     metrics_summary: dict[str, float]
+    all_chunker_metrics: dict[str, dict[str, float]] = None
 
 
 def _chunk_id(source: str, idx: int) -> str:
@@ -113,12 +114,14 @@ async def run_pipeline(
     best_score = -1.0
     best_metrics: ChunkMetrics | None = None
     best_chunks: list[str] = []
-
+    all_chunker_metrics: dict[str, dict] = {} 
+    
     for name, chunks in candidates.items():
         if not chunks:
             continue
         normalized = normalize_chunks(chunks)
         metrics = compute_metrics(normalized, text, compute_rc=True)
+        all_chunker_metrics[name] = metrics.as_dict() 
         if metrics.total > best_score:
             best_score = metrics.total
             best_chunker = name
@@ -194,6 +197,7 @@ async def run_pipeline(
         chunker_used=best_chunker,
         chunks=processed,
         metrics_summary=best_metrics.as_dict(),
+        all_chunker_metrics=all_chunker_metrics,
     )
 
 
