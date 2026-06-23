@@ -45,6 +45,36 @@ class GraphStore:
             "GraphStore.search 는 그래프 스키마 확정 후 구현 예정(§13)."
         )
 
+    def upsert_document_chunks(
+        self,
+        source: str,
+        doc_type: str,
+        chunk_ids: list[str],
+        sections: list[str],
+    ) -> None:
+        """Document → Chunk 관계를 Neo4j에 저장."""
+        driver = self._get_driver()
+        with driver.session() as session:
+            session.run(
+                """
+                MERGE (d:Document {source: $source})
+                SET d.doc_type = $doc_type
+                """,
+                source=source, doc_type=doc_type
+            )
+            for chunk_id, section in zip(chunk_ids, sections):
+                session.run(
+                    """
+                    MERGE (c:Chunk {id: $chunk_id})
+                    SET c.section = $section
+                    WITH c
+                    MATCH (d:Document {source: $source})
+                    MERGE (d)-[:HAS_CHUNK]->(c)
+                    """,
+                    chunk_id=chunk_id, section=section, source=source
+                )
+                
+
     def ensure_fulltext_indexes(self) -> None:
         """부팅 시 전문 검색 인덱스를 보장한다(§13.3). TODO: 스키마 확정 후 구현."""
         raise NotImplementedError("ensure_fulltext_indexes 미구현(스키마 대기).")

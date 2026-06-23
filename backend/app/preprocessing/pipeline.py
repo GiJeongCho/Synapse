@@ -159,6 +159,14 @@ async def run_pipeline(
 
     upsert_chunks(chunk_ids, texts, vectors, payloads)
 
+    from app.services.rag.graph_store import graph_store
+    graph_store.upsert_document_chunks(
+        source=source,
+        doc_type=doc_type.value,
+        chunk_ids=chunk_ids,
+        sections=[p.section or "" for p in processed],
+    )
+
     return PipelineResult(
         source=source,
         doc_type=doc_type.value,
@@ -195,6 +203,7 @@ def reembed_and_upsert(chunk_id: str, new_text: str, source: str, doc_type: str)
     }
 
     upsert_chunks([chunk_id], [new_text], vectors, [payload])
+
 
     return {
         "chunk_id": chunk_id,
