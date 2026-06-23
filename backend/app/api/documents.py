@@ -63,18 +63,51 @@ async def upload_document(file: UploadFile = File(...)):
 
 
 def _extract_text(path: Path, ext: str) -> str:
-    """Extract plain text from a file."""
+    """fitz로 먼저 추출, OCR 필요하면 외부 API 호출."""
     if ext == ".pdf":
-        try:
-            import fitz  # PyMuPDF
-            doc = fitz.open(str(path))
-            return "\n\n".join(page.get_text() for page in doc)
-        except ImportError:
-            raise HTTPException(status_code=500, detail="PyMuPDF not installed")
-    elif ext in (".txt", ".md"):
-        return path.read_text(encoding="utf-8", errors="replace")
-    else:
-        return path.read_text(encoding="utf-8", errors="replace")
+        text = _extract_with_fitz(path)
+        if _needs_ocr(text):
+            ocr_text = _extract_via_ocr(path)
+            if ocr_text:
+                return ocr_text
+        return text
+    return path.read_text(encoding="utf-8", errors="replace")
+
+
+def _extract_with_fitz(path: Path) -> str:
+    try:
+        import fitz
+        doc = fitz.open(str(path))
+        return "\n\n".join(page.get_text() for page in doc)
+    except Exception:
+        return ""
+
+
+def _needs_ocr(text: str) -> bool:
+    """텍스트가 너무 짧거나 깨진 경우 OCR 필요 판단."""
+    if not text or len(text.strip()) < 100:
+        return True
+    garbled = text.count("?") + text.count("") 
+    if garbled / max(len(text), 1) > 0.1:
+        return True
+    return False
+
+
+def _extract_via_ocr(path: Path) -> str:
+    """외부 OCR API 호출."""
+    import httpx
+    try:
+        with open(path, "rb") as f:
+            resp = httpx.post(
+                f"{settings.ocr_api_url}/ocr/process",
+                files={"file": (path.name, f, "application/pdf")},
+                timeout=120.0,
+            )
+        resp.raise_for_status()
+        data = resp.json()
+        return data.get("markdown", data.get("text", ""))
+    except Exception as e:
+        return ""
 
 
 # ---------------------------------------------------------------------------

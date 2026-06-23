@@ -132,8 +132,13 @@ async def run_pipeline(
 
     # --- 4. Score importance for each chunk ---
     processed: list[ProcessedChunk] = []
+    last_section = None
     for i, chunk_text in enumerate(best_chunks):
-        section = _detect_section(chunk_text)
+        section = _detect_section(chunk_text, doc_type.value)
+        if section:
+            last_section = section   # 새 섹션 발견하면 갱신
+        else:
+            section = last_section   # 없으면 이전 섹션 유지
         importance = score_chunk_sync(
             chunk_text,
             section=section,
@@ -171,6 +176,8 @@ async def run_pipeline(
             "user_adjusted": False,
         })
 
+    
+
     upsert_chunks(chunk_ids, texts, vectors, payloads)
 
     from app.services.rag.graph_store import graph_store
@@ -193,7 +200,7 @@ async def run_pipeline(
 def reembed_and_upsert(chunk_id: str, new_text: str, source: str, doc_type: str) -> dict:
     """Re-embed a single edited chunk and upsert it back to Milvus."""
     vectors = embed_texts([new_text])
-    section = _detect_section(new_text)
+    section = _detect_section(new_text, doc_type)
 
     per_chunk_metrics = compute_metrics([new_text], new_text, compute_rc=False)
     importance = score_chunk_sync(

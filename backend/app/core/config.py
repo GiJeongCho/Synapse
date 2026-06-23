@@ -25,7 +25,8 @@ class Settings(BaseSettings):
     anthropic_api_key: str = ""
     openai_api_key: str = ""
     gemini_api_key: str = ""
-    llm_model: str = "claude-sonnet-4-20250514"
+    llm_model: str = "claude-sonnet-4-5"
+    # claude-opus-4-5 , claude-sonnet-4-5, claude-haiku-3-5
 
     # ---- Embedding ----
     embedding_model: str = "Qwen/Qwen3-Embedding"
