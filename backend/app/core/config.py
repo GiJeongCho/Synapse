@@ -28,13 +28,19 @@ class Settings(BaseSettings):
     llm_model: str = "claude-sonnet-4-20250514"
 
     # ---- Embedding ----
-    embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2"
-    embedding_dim: int = 384
+    embedding_model: str = "Qwen/Qwen3-Embedding"
+    embedding_dim: int = 1024
 
     # ---- Vector DB (Milvus Lite / Qdrant) ----
     milvus_uri: str = str(_BACKEND_ROOT / "synapse.db")
     milvus_collection: str = "synapse_chunks"
 
+
+    # ---- 외부 AI API ----
+    embed_api_url: str = "http://localhost:5000"
+    rerank_api_url: str = "http://localhost:5000"
+    ocr_api_url: str = "http://localhost:5005"
+    
     # ---- Graph DB (Neo4j) ----
     neo4j_uri: str = "bolt://localhost:7687"
     neo4j_user: str = "neo4j"
