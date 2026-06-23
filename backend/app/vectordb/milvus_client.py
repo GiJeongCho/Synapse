@@ -40,23 +40,16 @@ def ensure_collection() -> None:
 # Embedding helper — lazy singleton
 # ---------------------------------------------------------------------------
 
-_model = None
-
-
-def _get_embed_model():
-    global _model
-    if _model is None:
-        from sentence_transformers import SentenceTransformer
-        _model = SentenceTransformer(settings.embedding_model)
-    return _model
-
-
 def embed_texts(texts: list[str]) -> list[list[float]]:
-    """Embed a batch of texts and return list of float vectors."""
-    model = _get_embed_model()
-    vectors = model.encode(texts, normalize_embeddings=True, show_progress_bar=False)
-    return vectors.tolist()
-
+    """외부 임베딩 API 호출하여 벡터 반환."""
+    import httpx
+    resp = httpx.post(
+        f"{settings.embed_api_url}/embed",
+        json={"texts": texts},
+        timeout=60.0,
+    )
+    resp.raise_for_status()
+    return resp.json()["embeddings"]
 
 # ---------------------------------------------------------------------------
 # CRUD
