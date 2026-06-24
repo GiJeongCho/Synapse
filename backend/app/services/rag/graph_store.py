@@ -52,9 +52,10 @@ class GraphStore:
         chunk_ids: list[str],
         sections: list[str],
     ) -> None:
-        """Document → Chunk 관계를 Neo4j에 저장."""
+        """Document → Chunk (HAS_CHUNK), Chunk → Chunk (NEXT_CHUNK) 관계를 Neo4j에 저장."""
         driver = self._get_driver()
         with driver.session() as session:
+            # 1. Document 노드 생성/갱신
             session.run(
                 """
                 MERGE (d:Document {source: $source})
@@ -62,22 +63,41 @@ class GraphStore:
                 """,
                 source=source, doc_type=doc_type
             )
+
+            # 2. Chunk 노드 생성 + HAS_CHUNK 관계
             for chunk_id, section in zip(chunk_ids, sections):
                 session.run(
                     """
                     MERGE (c:Chunk {id: $chunk_id})
-                    SET c.section = $section
+                    SET c.section = $section, c.source = $source
                     WITH c
                     MATCH (d:Document {source: $source})
                     MERGE (d)-[:HAS_CHUNK]->(c)
                     """,
                     chunk_id=chunk_id, section=section, source=source
                 )
-                
+
+            # 3. NEXT_CHUNK 관계 (청크 순서 연결)
+            for i in range(len(chunk_ids) - 1):
+                session.run(
+                    """
+                    MATCH (a:Chunk {id: $current_id})
+                    MATCH (b:Chunk {id: $next_id})
+                    MERGE (a)-[:NEXT_CHUNK]->(b)
+                    """,
+                    current_id=chunk_ids[i],
+                    next_id=chunk_ids[i + 1]
+                )
 
     def ensure_fulltext_indexes(self) -> None:
         """부팅 시 전문 검색 인덱스를 보장한다(§13.3). TODO: 스키마 확정 후 구현."""
         raise NotImplementedError("ensure_fulltext_indexes 미구현(스키마 대기).")
+
+    def delete_all(self) -> None:
+        """Neo4j 전체 노드 및 관계 삭제."""
+        driver = self._get_driver()
+        with driver.session() as session:
+           session.run("MATCH (n) DETACH DELETE n")
 
     def close(self) -> None:
         if self._driver is not None:

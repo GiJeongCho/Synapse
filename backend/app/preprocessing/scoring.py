@@ -49,6 +49,25 @@ _SECTION_WEIGHTS: dict[str, float] = {
 }
 
 
+def _text_quality(text: str) -> float:
+    """텍스트 자체가 의미있는 내용인지 판단 (0~1)."""
+    stripped = text.strip()
+    if len(stripped) < 20:
+        return 0.0
+
+    # 반복 문자 비율 체크 (노이즈 감지)
+    unique_ratio = len(set(stripped)) / len(stripped)
+    if unique_ratio < 0.1:
+        return 0.0
+
+    # 의미있는 단어(2글자 이상) 비율
+    words = stripped.split()
+    if not words:
+        return 0.0
+    meaningful = sum(1 for w in words if len(w) >= 2)
+    return min(meaningful / len(words), 1.0)
+
+
 def _position_weight(text: str, section: str | None = None) -> float:
     """Bonus/penalty based on which section the chunk likely belongs to."""
     if section:
@@ -179,8 +198,21 @@ def score_chunk_sync(
     cit_d = _citation_density(text) if doc_type == "paper" else 0.0
 
     # importance = weighted combination (0–1 range)
-    raw_importance = 0.3 + pos_w + 0.3 * kw_d + 0.2 * cit_d
-    importance_score = max(0.0, min(1.0, raw_importance))
+    tq = _text_quality(text)
+
+    # 텍스트 품질이 0이면 즉시 NOISE
+    if tq == 0.0:
+        importance_score = 0.0
+    else:
+        # pos_w 범위(-0.5~0.3)를 0~1로 정규화
+        pos_score = (pos_w + 0.5) / 0.8
+        raw_importance = (
+            0.4 * kw_d
+            + 0.3 * pos_score
+            + 0.2 * cit_d
+            + 0.1 * tq
+        )
+        importance_score = max(0.0, min(1.0, raw_importance))
 
     label = _classify_label(importance_score)
 

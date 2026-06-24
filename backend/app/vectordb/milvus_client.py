@@ -153,3 +153,20 @@ def list_sources() -> list[dict]:
             seen[src] = r.get("doc_type", "unknown")
 
     return [{"source": s, "doc_type": dt} for s, dt in seen.items()]
+
+    
+
+def drop_all_chunks() -> None:
+    """컬렉션 전체 삭제 후 재생성."""
+    client = get_client()
+    if client.has_collection(settings.milvus_collection):
+        client.drop_collection(settings.milvus_collection)
+    ensure_collection()
+
+
+def delete_chunks_by_source(source: str) -> None:
+    client = get_client()
+    client.delete(
+        collection_name=settings.milvus_collection,
+        filter=f'source == "{source}"',
+    )
