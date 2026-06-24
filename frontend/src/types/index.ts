@@ -43,3 +43,44 @@ export interface SearchResponse {
   query: string;
   total: number;
 }
+
+export interface FlowNodeData {
+  label: string;
+  desc: string;
+}
+
+export interface FlowNode {
+  id: string;
+  type: string;
+  position: { x: number; y: number };
+  data: FlowNodeData;
+  style?: Record<string, unknown>;
+}
+
+export interface FlowEdge {
+  id: string;
+  source: string;
+  target: string;
+  label?: string;
+  animated?: boolean;
+  style?: Record<string, unknown>;
+  labelStyle?: Record<string, unknown>;
+  labelBgStyle?: Record<string, unknown>;
+  labelBgPadding?: [number, number];
+  labelBgBorderRadius?: number;
+}
+
+export interface WorkflowGraph {
+  workflow_name?: string;
+  agent_id?: string;
+  display_name: string;
+  category: string;
+  nodes: FlowNode[];
+  edges: FlowEdge[];
+}
+
+export interface WorkflowListItem {
+  name: string;
+  display_name: string;
+  category: string;
+}

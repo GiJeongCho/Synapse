@@ -8,6 +8,7 @@ from app.api.documents import router as documents_router
 from app.api.jobs import router as jobs_router
 from app.api.meta_agent import router as meta_agent_router
 from app.api.search import router as search_router
+from app.api.workflows import router as workflows_router
 from app.common import setup_library_logging
 from app.config import settings
 
@@ -28,6 +29,7 @@ app.include_router(jobs_router, prefix="/v1/agent/jobs", tags=["jobs"])
 app.include_router(documents_router, prefix="/api/documents", tags=["documents"])
 app.include_router(search_router, prefix="/api/search", tags=["search"])
 app.include_router(meta_agent_router, prefix="/api/meta-agent", tags=["meta-agent"])
+app.include_router(workflows_router, prefix="/api/workflows", tags=["workflows"])
 
 
 @app.get("/health/live")

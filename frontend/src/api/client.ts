@@ -5,6 +5,8 @@ import type {
   RegistryListResponse,
   AgentRecord,
   SearchResponse,
+  WorkflowGraph,
+  WorkflowListItem,
 } from "../types";
 
 const api = axios.create({
@@ -46,5 +48,30 @@ export async function searchDocuments(
     query,
     top_k: topK,
   });
+  return data;
+}
+
+export async function listBuiltinWorkflows(): Promise<WorkflowListItem[]> {
+  const { data } = await api.get<WorkflowListItem[]>(
+    "/api/workflows/builtin",
+  );
+  return data;
+}
+
+export async function getBuiltinWorkflowGraph(
+  workflowName: string,
+): Promise<WorkflowGraph> {
+  const { data } = await api.get<WorkflowGraph>(
+    `/api/workflows/builtin/${workflowName}`,
+  );
+  return data;
+}
+
+export async function getAgentWorkflowGraph(
+  agentId: string,
+): Promise<WorkflowGraph> {
+  const { data } = await api.get<WorkflowGraph>(
+    `/api/workflows/agent/${agentId}`,
+  );
   return data;
 }

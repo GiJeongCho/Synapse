@@ -145,7 +145,7 @@ async def get_agent_detail(agent_id: str):
 
         import json
         record = results[0]
-        for field in ("agent_spec", "mcp_tools", "project_files", "test_result"):
+        for field in ("agent_spec", "mcp_tools", "project_files", "test_result", "graph_structure"):
             val = record.get(field)
             if isinstance(val, str):
                 try:

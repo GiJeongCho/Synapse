@@ -24,6 +24,7 @@ _FIELDS = [
     "mcp_tools",
     "project_files",
     "test_result",
+    "graph_structure",
     "created_at",
     "version",
     "mode",
@@ -68,6 +69,7 @@ def register(record: dict[str, Any]) -> None:
         "mcp_tools": json.dumps(record.get("mcp_tools", []), ensure_ascii=False),
         "project_files": json.dumps(record.get("project_files", {}), ensure_ascii=False),
         "test_result": json.dumps(record.get("test_result", {}), ensure_ascii=False),
+        "graph_structure": json.dumps(record.get("graph_structure", {}), ensure_ascii=False),
         "created_at": record.get("created_at", ""),
         "version": record.get("version", 1),
         "mode": record.get("mode", "solo"),
@@ -103,7 +105,7 @@ def lookup(
         entity = hit.get("entity", {})
         for field in _FIELDS:
             val = entity.get(field)
-            if field in ("agent_spec", "mcp_tools", "project_files", "test_result"):
+            if field in ("agent_spec", "mcp_tools", "project_files", "test_result", "graph_structure"):
                 try:
                     val = json.loads(val) if isinstance(val, str) else val
                 except (json.JSONDecodeError, TypeError):

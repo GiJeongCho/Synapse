@@ -21,6 +21,54 @@ from app.core.logging import logger
 log = logger(__name__)
 
 
+def _build_graph_from_spec(agent_spec: dict[str, Any]) -> dict[str, Any]:
+    """에이전트 스펙에서 React Flow 호환 그래프 구조를 생성한다."""
+    nodes_spec = agent_spec.get("nodes", agent_spec.get("workflow", []))
+    if isinstance(nodes_spec, list):
+        node_names = [n if isinstance(n, str) else n.get("name", f"node_{i}") for i, n in enumerate(nodes_spec)]
+    elif isinstance(nodes_spec, dict):
+        node_names = list(nodes_spec.keys())
+    else:
+        node_names = ["agent"]
+
+    if not node_names:
+        node_names = ["agent"]
+
+    x_gap = 240
+    flow_nodes = []
+    for i, name in enumerate(node_names):
+        desc = ""
+        if isinstance(nodes_spec, list) and i < len(nodes_spec) and isinstance(nodes_spec[i], dict):
+            desc = nodes_spec[i].get("description", "")
+        flow_nodes.append({
+            "id": name,
+            "type": "flowCard",
+            "position": {"x": i * x_gap, "y": 0},
+            "data": {"label": name, "desc": desc},
+            "style": {"width": 180},
+        })
+
+    edge_defaults = {
+        "animated": True,
+        "style": {"stroke": "#5a6278", "strokeWidth": 2},
+        "labelStyle": {"fill": "#c8cdd8", "fontSize": 11, "fontWeight": 600},
+        "labelBgStyle": {"fill": "#1a1e2c", "stroke": "#3a3f52", "strokeWidth": 1},
+        "labelBgPadding": [6, 4],
+        "labelBgBorderRadius": 4,
+    }
+
+    flow_edges = []
+    for i in range(len(node_names) - 1):
+        flow_edges.append({
+            **edge_defaults,
+            "id": f"e-{node_names[i]}-{node_names[i + 1]}",
+            "source": node_names[i],
+            "target": node_names[i + 1],
+        })
+
+    return {"nodes": flow_nodes, "edges": flow_edges}
+
+
 async def builder_supervisor(
     state: DualSupervisorState,
     config: RunnableConfig,
@@ -55,12 +103,15 @@ async def builder_supervisor(
         config=config,
     )
 
+    graph_structure = _build_graph_from_spec(pipeline_result.get("agent_spec", {}))
+
     current_result = {
         "agent_spec": pipeline_result.get("agent_spec", {}),
         "system_prompt": pipeline_result.get("system_prompt", ""),
         "project_files": pipeline_result.get("project_files", {}),
         "mcp_tools": pipeline_result.get("mcp_tools", []),
         "test_result": pipeline_result.get("test_result", {}),
+        "graph_structure": graph_structure,
     }
 
     log.info(
