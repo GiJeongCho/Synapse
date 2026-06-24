@@ -1,3 +1,16 @@
+
+## 백엔드 실행
+cd ~Synapse/backend
+pip install -r requirements.txt    # 최초 1회
+uvicorn app.main:app --reload --host 0.0.0.0 --port 2004
+
+
+## 프론트 실행
+cd ~Synapse/frontend
+npm install    # 최초 1회
+npm run dev
+
+
 # Synapse — Multi-Agent 리서치 시스템
 
 > 주제를 던지면 AI가 스스로 파고들어 리포트까지 작성하는 Multi-Agent 리서치 플랫폼

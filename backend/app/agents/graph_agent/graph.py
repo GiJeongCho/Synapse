@@ -1,8 +1,23 @@
-"""GraphAgent 그래프 — 기획 확정 후 구현(§4).
+"""GraphAgent 그래프(§4) — expand → summarize (선형)."""
 
-예상 패턴: expand → summarize (선형).
-"""
+from __future__ import annotations
+
+from langgraph.graph import END, StateGraph
+
+from app.agents.graph_agent.nodes.expand import expand_node
+from app.agents.graph_agent.nodes.summarize import summarize_node
+from app.agents.graph_agent.state import GraphAgentState
 
 
 def create_graph_workflow():
-    raise NotImplementedError("graph_agent 그래프 — 기획 확정 후 구현")
+    """그래프 에이전트 워크플로우를 컴파일한다."""
+    workflow = StateGraph(GraphAgentState)
+
+    workflow.add_node("expand", expand_node)
+    workflow.add_node("summarize", summarize_node)
+
+    workflow.set_entry_point("expand")
+    workflow.add_edge("expand", "summarize")
+    workflow.add_edge("summarize", END)
+
+    return workflow.compile()
