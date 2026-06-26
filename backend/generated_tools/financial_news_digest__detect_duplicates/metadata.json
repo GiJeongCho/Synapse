@@ -1,0 +1,8 @@
+{
+  "agent_id": "financial_news_digest",
+  "name": "Detect Duplicate News Items",
+  "description": "Filter out duplicate news items using persistent JSON storage of previous digests.",
+  "functions": [
+    "detect_duplicates"
+  ]
+}

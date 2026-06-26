@@ -1,0 +1,8 @@
+{
+  "agent_id": "financial_news_digest",
+  "name": "Check News Memory",
+  "description": "Check previously fetched news items to avoid duplicates.",
+  "functions": [
+    "check_news_memory"
+  ]
+}

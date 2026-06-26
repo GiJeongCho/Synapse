@@ -32,32 +32,62 @@ REQUIREMENTS_PROMPT = ChatPromptTemplate.from_messages([
 
 
 # ──────────────────────────────────────────────────────────
-# 2. Provisioner
+# 2. Provisioner — 실행 가능한 MCP 도구 Python 코드 생성
 # ──────────────────────────────────────────────────────────
 
 PROVISIONER_SYSTEM = """\
-You are an Environment Provisioner for an AI agent factory.
-Given an agent specification and a list of matched MCP tools, generate the complete agent project.
+You are a Tool Builder for an AI agent factory.
+You create REAL, EXECUTABLE Python tool files that the agent can run.
 
-You must produce a JSON object with these fields:
-- "system_prompt": the system prompt for the child agent (in the language appropriate for the task)
-- "project_files": a dict mapping file paths to file contents:
-  - "agent.py": the main agent script using MCP tools
-  - "pyproject.toml": project config with dependencies
-  - "mcp_config.json": MCP server configuration
+Given an agent spec, generate a JSON with:
+1. "agent_id": short snake_case id
+2. "system_prompt": agent's system prompt (max 300 chars)
+3. "tools": list of tool objects, each with:
+   - "tool_id": snake_case name (e.g. "bloomberg_scraper")
+   - "name": display name
+   - "description": what it does (1 line)
+   - "code": a COMPLETE Python function. Rules:
+     * Function name must match tool_id
+     * Use only stdlib + httpx + beautifulsoup4 (common packages)
+     * Must return a dict with results
+     * Include proper error handling
+     * For web: use httpx
+     * For email: use smtplib with SMTP_SSL (port 465)
+     * For scheduling: just return the cron expression as data
+     * Keep each function under 40 lines
+   - "functions": list of callable function names in the code
+4. "workflow": list of step names describing execution order
+5. "required_env": list of env var objects the agent needs, each with:
+   - "name": env var name
+   - "description": what it is
+   - "example": example value
 
-Guidelines:
-- The agent.py should import and configure the specified MCP tools
-- The system_prompt should clearly define the agent's persona, goal, and constraints
-- Keep code minimal but functional
-- Use Python 3.11+ features
-- Respond ONLY with the JSON object"""
+ENVIRONMENT VARIABLE RULES (MUST follow):
+- For email/SMTP, use these EXACT env var names:
+  SMTP_HOST (default smtp.gmail.com), SMTP_PORT (default 587),
+  SMTP_USER (sender email), SMTP_PASSWORD (app password), SMTP_FROM
+- For SMTP, use smtplib.SMTP with starttls() for port 587, or SMTP_SSL for port 465
+- For API keys: ANTHROPIC_API_KEY, OPENAI_API_KEY
+- All credentials MUST come from os.getenv(), NEVER hardcode them
+
+PIPELINE RULES:
+- Tools execute in "workflow" order. Output of each tool feeds into the next.
+- fetch/scrape tools: return dict with "status"="success" and "content"=scraped text
+- summarize tools: accept html_content param, return dict with "status"="success" and "summary"=text
+- email tools: accept summary_text param, return dict with "status"="success"
+
+CRITICAL RULES:
+- Write REAL Python code, not pseudocode
+- Each tool's "code" must be a complete, self-contained Python file
+- Do NOT use Docker, npm, or external services
+- Keep total response under 3000 characters
+- Respond ONLY with JSON"""
 
 PROVISIONER_PROMPT = ChatPromptTemplate.from_messages([
     ("system", PROVISIONER_SYSTEM),
     ("human", (
         "Agent Specification:\n{agent_spec}\n\n"
-        "Available MCP Tools:\n{mcp_tools}\n\n"
+        "Available reference tools:\n{mcp_tools}\n\n"
         "Previous feedback (if any):\n{feedback}"
     )),
 ])
@@ -69,23 +99,22 @@ PROVISIONER_PROMPT = ChatPromptTemplate.from_messages([
 
 EVALUATOR_SYSTEM = """\
 You are an Evaluator for an AI agent factory.
-Given a generated agent's code and configuration, evaluate its quality.
+Given a generated agent's tools and configuration, evaluate quality.
 
-Check the following:
-1. **Syntax validity**: Is the Python code syntactically correct?
-2. **Tool integration**: Are MCP tools properly configured and imported?
-3. **Prompt quality**: Does the system prompt match the agent specification?
-4. **Completeness**: Does the project have all required files?
-5. **Security**: Are there obvious security issues?
+Check:
+1. Does the Python code have valid syntax?
+2. Are imports available (stdlib + httpx + bs4)?
+3. Does the system prompt match the spec?
+4. Are there security issues (no eval, no shell injection)?
 
-Output a JSON object with:
+Output a JSON:
 - "passed": boolean
 - "score": float 0-1
-- "errors": list of error strings (empty if passed)
+- "errors": list of error strings
 - "warnings": list of non-critical issues
-- "suggestions": list of improvement suggestions
+- "suggestions": list of improvements
 
-Be strict but fair. Respond ONLY with the JSON object."""
+Respond ONLY with JSON."""
 
 EVALUATOR_PROMPT = ChatPromptTemplate.from_messages([
     ("system", EVALUATOR_SYSTEM),

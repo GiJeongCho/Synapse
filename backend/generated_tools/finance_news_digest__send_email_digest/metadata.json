@@ -1,0 +1,8 @@
+{
+  "agent_id": "finance_news_digest",
+  "name": "Send Email Digest",
+  "description": "Sends summarized news digest via SMTP to wzxcv123@naver.com with professional formatting.",
+  "functions": [
+    "send_email_digest"
+  ]
+}

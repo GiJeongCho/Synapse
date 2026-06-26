@@ -91,6 +91,16 @@ export default function AgentFlowPage() {
       const fallback = STATIC_FALLBACKS[name];
       if (fallback) {
         setGraph(fallback);
+      } else if (type === "agent") {
+        const agent = agents.find((a) => a.agent_id === name);
+        setGraph({
+          display_name: agent?.user_request?.slice(0, 40) ?? name,
+          category: "생성된 에이전트",
+          nodes: [
+            { id: "agent", type: "flowCard", position: { x: 0, y: 0 }, data: { label: name.slice(0, 20), desc: agent?.user_request ?? "" } },
+          ],
+          edges: [],
+        });
       } else {
         setError("그래프를 불러올 수 없습니다.");
         setGraph(null);

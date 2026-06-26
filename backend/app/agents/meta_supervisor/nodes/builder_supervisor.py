@@ -103,15 +103,19 @@ async def builder_supervisor(
         config=config,
     )
 
-    graph_structure = _build_graph_from_spec(pipeline_result.get("agent_spec", {}))
+    project_files = pipeline_result.get("project_files", {})
+
+    graph_spec = project_files if project_files.get("workflow") else pipeline_result.get("agent_spec", {})
+    graph_structure = _build_graph_from_spec(graph_spec)
 
     current_result = {
         "agent_spec": pipeline_result.get("agent_spec", {}),
         "system_prompt": pipeline_result.get("system_prompt", ""),
-        "project_files": pipeline_result.get("project_files", {}),
+        "project_files": project_files,
         "mcp_tools": pipeline_result.get("mcp_tools", []),
         "test_result": pipeline_result.get("test_result", {}),
         "graph_structure": graph_structure,
+        "generated_tools": project_files.get("tools", []),
     }
 
     log.info(

@@ -84,3 +84,25 @@ export interface WorkflowListItem {
   display_name: string;
   category: string;
 }
+
+export interface GeneratedTool {
+  tool_id: string;
+  name?: string;
+  description?: string;
+  agent_id?: string;
+  functions?: string[];
+  path?: string;
+  has_code?: boolean;
+  code?: string;
+}
+
+export interface ToolListResponse {
+  tools: GeneratedTool[];
+  total: number;
+}
+
+export interface ToolExecuteResult {
+  status: string;
+  result?: Record<string, unknown>;
+  error?: string;
+}

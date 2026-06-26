@@ -16,10 +16,48 @@ _FENCE_RE = re.compile(r"```(?:json)?\s*(.*?)\s*```", re.DOTALL)
 _OBJ_RE = re.compile(r"(\{.*\}|\[.*\])", re.DOTALL)
 
 
+def _try_repair_truncated_json(text: str) -> Any | None:
+    """잘린 JSON 응답을 복구 시도한다.
+
+    LLM이 max_tokens에 도달해 응답이 잘린 경우,
+    열린 괄호/따옴표를 닫아서 파싱을 시도한다.
+    """
+    s = text.rstrip()
+
+    for _ in range(20):
+        try:
+            return json.loads(s)
+        except json.JSONDecodeError:
+            pass
+
+        if s.endswith(","):
+            s = s[:-1]
+            continue
+
+        open_braces = s.count("{") - s.count("}")
+        open_brackets = s.count("[") - s.count("]")
+        in_string = (s.count('"') % 2) == 1
+
+        if in_string:
+            s += '"'
+        elif open_brackets > 0:
+            s += "]" * open_brackets
+        elif open_braces > 0:
+            s += "}" * open_braces
+        else:
+            break
+
+    try:
+        return json.loads(s)
+    except json.JSONDecodeError:
+        return None
+
+
 def extract_json_from_llm_response(content: str) -> Any:
     """LLM 텍스트 응답에서 JSON 본문을 추출/파싱한다.
 
     코드펜스(```json ... ```)나 앞뒤 잡음을 제거하고 dict/list 로 반환한다.
+    잘린 응답도 복구를 시도한다.
     """
     if content is None:
         raise LLMOutputParsingError(details={"reason": "empty content"})
@@ -38,7 +76,15 @@ def extract_json_from_llm_response(content: str) -> Any:
     if matched:
         try:
             return json.loads(matched.group(1))
-        except json.JSONDecodeError as exc:
-            raise LLMOutputParsingError(details={"cause": str(exc), "raw": text[:500]})
+        except json.JSONDecodeError:
+            repaired = _try_repair_truncated_json(matched.group(1))
+            if repaired is not None:
+                return repaired
+
+    obj_start = candidate.find("{")
+    if obj_start >= 0:
+        repaired = _try_repair_truncated_json(candidate[obj_start:])
+        if repaired is not None:
+            return repaired
 
     raise LLMOutputParsingError(details={"raw": text[:500]})

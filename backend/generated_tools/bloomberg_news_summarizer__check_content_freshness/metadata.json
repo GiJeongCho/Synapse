@@ -1,0 +1,8 @@
+{
+  "agent_id": "bloomberg_news_summarizer",
+  "name": "Check Content Freshness",
+  "description": "Validates article freshness to avoid duplicate summaries using content hash.",
+  "functions": [
+    "check_content_freshness"
+  ]
+}

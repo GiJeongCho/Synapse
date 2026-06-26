@@ -1,0 +1,8 @@
+{
+  "agent_id": "financial_news_digest",
+  "name": "News Article Parser",
+  "description": "Extracts article titles, links, and summaries from Yahoo Finance HTML content.",
+  "functions": [
+    "parse_news_articles"
+  ]
+}

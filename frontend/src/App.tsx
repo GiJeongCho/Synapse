@@ -4,6 +4,8 @@ import PlaceholderPage from "./pages/PlaceholderPage";
 import AgentDashboardPage from "./pages/AgentDashboardPage";
 import AgentCreatePage from "./pages/AgentCreatePage";
 import AgentFlowPage from "./pages/AgentFlowPage";
+import ToolsPage from "./pages/ToolsPage";
+import SchedulesPage from "./pages/SchedulesPage";
 
 const PLACEHOLDER_ROUTES = [
   { path: "/upload", title: "문서 업로드", desc: "전처리 파이프라인 연동 예정" },
@@ -17,6 +19,8 @@ const SIDEBAR_ROUTES = [
   { path: "/agents", title: "에이전트 관리" },
   { path: "/agents/create", title: "에이전트 생성" },
   { path: "/agents/flow", title: "흐름도" },
+  { path: "/tools", title: "MCP 도구" },
+  { path: "/schedules", title: "스케줄" },
 ];
 
 export default function App() {
@@ -35,6 +39,8 @@ export default function App() {
           <Route path="/agents" element={<AgentDashboardPage />} />
           <Route path="/agents/create" element={<AgentCreatePage />} />
           <Route path="/agents/flow" element={<AgentFlowPage />} />
+          <Route path="/tools" element={<ToolsPage />} />
+          <Route path="/schedules" element={<SchedulesPage />} />
           <Route
             path="/"
             element={<PlaceholderPage title="Synapse" description="좌측 메뉴에서 페이지를 선택하세요." />}

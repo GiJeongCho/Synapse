@@ -1,0 +1,8 @@
+{
+  "agent_id": "financial_news_digest",
+  "name": "Summarize Financial News",
+  "description": "Condenses fetched financial news into a concise, relevant summary using text analysis.",
+  "functions": [
+    "summarize_financial_news"
+  ]
+}

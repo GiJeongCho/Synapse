@@ -64,10 +64,18 @@ async def get_agent_workflow(agent_id: str) -> dict[str, Any]:
         client = get_client()
         results = client.query(
             collection_name=settings.meta_registry_collection,
-            filter=f'agent_id == "{agent_id}"',
+            filter=f'id == "{agent_id}"',
             output_fields=["agent_id", "user_request", "graph_structure"],
             limit=1,
         )
+
+        if not results:
+            results = client.query(
+                collection_name=settings.meta_registry_collection,
+                filter=f'agent_id == "{agent_id}"',
+                output_fields=["agent_id", "user_request", "graph_structure"],
+                limit=1,
+            )
 
         if not results:
             raise HTTPException(status_code=404, detail=f"Agent not found: {agent_id}")

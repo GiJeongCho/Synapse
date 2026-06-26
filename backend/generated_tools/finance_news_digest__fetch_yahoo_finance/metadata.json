@@ -1,0 +1,8 @@
+{
+  "agent_id": "finance_news_digest",
+  "name": "Fetch Yahoo Finance News",
+  "description": "Scrape latest financial news from Yahoo Finance with robots.txt compliance check and retry logic.",
+  "functions": [
+    "fetch_yahoo_finance"
+  ]
+}

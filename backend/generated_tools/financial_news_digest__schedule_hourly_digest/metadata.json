@@ -1,0 +1,8 @@
+{
+  "agent_id": "financial_news_digest",
+  "name": "Schedule Hourly Execution",
+  "description": "Returns cron expression for hourly execution of the digest pipeline.",
+  "functions": [
+    "schedule_hourly_digest"
+  ]
+}

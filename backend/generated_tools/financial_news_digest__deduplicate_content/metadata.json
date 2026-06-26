@@ -1,0 +1,8 @@
+{
+  "agent_id": "financial_news_digest",
+  "name": "Deduplicate Articles",
+  "description": "Hash articles and compare against previous digests to avoid duplicates.",
+  "functions": [
+    "deduplicate_content"
+  ]
+}

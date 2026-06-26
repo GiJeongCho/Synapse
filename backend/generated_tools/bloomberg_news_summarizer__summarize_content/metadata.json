@@ -1,0 +1,8 @@
+{
+  "agent_id": "bloomberg_news_summarizer",
+  "name": "Summarize News Content",
+  "description": "Extracts and summarizes Bloomberg article content using extractive summarization.",
+  "functions": [
+    "summarize_content"
+  ]
+}

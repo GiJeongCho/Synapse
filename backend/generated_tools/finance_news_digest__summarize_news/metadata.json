@@ -1,0 +1,8 @@
+{
+  "agent_id": "finance_news_digest",
+  "name": "News Summarizer",
+  "description": "Creates a professional summary of news articles for email digest.",
+  "functions": [
+    "summarize_news"
+  ]
+}

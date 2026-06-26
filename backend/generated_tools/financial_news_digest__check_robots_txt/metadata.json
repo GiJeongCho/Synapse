@@ -1,0 +1,8 @@
+{
+  "agent_id": "financial_news_digest",
+  "name": "Check Robots.txt",
+  "description": "Verify Yahoo Finance robots.txt allows scraping before proceeding.",
+  "functions": [
+    "check_robots_txt"
+  ]
+}

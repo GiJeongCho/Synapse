@@ -1,0 +1,8 @@
+{
+  "agent_id": "bloomberg_news_summarizer",
+  "name": "Schedule Daily Task",
+  "description": "Schedules news fetch every 10 minutes from 9 AM to 5 PM daily with timezone support.",
+  "functions": [
+    "schedule_daily_task"
+  ]
+}
