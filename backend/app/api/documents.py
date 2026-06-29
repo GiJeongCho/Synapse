@@ -11,7 +11,7 @@ from pydantic import BaseModel
 
 from app.config import settings
 from app.preprocessing.pipeline import reembed_and_upsert, run_pipeline
-from app.vectordb.milvus_client import delete_chunks, get_chunks_by_source, list_sources, drop_all_chunks
+from app.vectordb.milvus_client import delete_chunks, get_chunks_by_source, list_sources, drop_all_chunks, delete_chunks_by_source
 
 router = APIRouter()
 
@@ -46,7 +46,7 @@ async def upload_document(file: UploadFile = File(...)):
     save_path.write_bytes(content)
 
     # Extract text
-    text = _extract_text(save_path, ext)
+    text, extraction_method = _extract_text(save_path, ext)
     if not text or not text.strip():
         raise HTTPException(status_code=400, detail="Could not extract text from file")
 
@@ -56,6 +56,7 @@ async def upload_document(file: UploadFile = File(...)):
     return {
         "source": result.source,
         "doc_type": result.doc_type,
+        "extraction_method": extraction_method,
         "chunker_used": result.chunker_used,
         "num_chunks": len(result.chunks),
         "metrics_summary": result.metrics_summary,
@@ -63,16 +64,43 @@ async def upload_document(file: UploadFile = File(...)):
     }
 
 
-def _extract_text(path: Path, ext: str) -> str:
-    """fitz로 먼저 추출, 품질이 낮으면 외부 OCR API 호출."""
+def _clean_text(text: str) -> str:
+    """PDF 추출 시 섞인 정규식 메타문자 제거."""
+    text = text.replace(r'\s*', '').replace(r'\d+', '').replace(r'\n', '\n')
+    return text
+
+def _extract_text(path: Path, ext: str) -> tuple[str, str]:
     if ext == ".pdf":
         text = _extract_with_fitz(path)
         if _needs_ocr(text):
             ocr_text = _extract_via_ocr(path)
             if ocr_text:
-                return ocr_text
-        return text
-    return path.read_text(encoding="utf-8", errors="replace")
+                return _clean_text(ocr_text), "ocr"
+        return _clean_text(text), "fitz"
+    elif ext == ".docx":
+        return _clean_text(_extract_with_docx(path)), "docx"
+    return _clean_text(path.read_text(encoding="utf-8", errors="replace")), "plaintext"
+
+def _extract_with_docx(path: Path) -> str:
+    try:
+        from docx import Document
+        doc = Document(str(path))
+        texts = []
+        # 일반 단락
+        for para in doc.paragraphs:
+            if para.text.strip():
+                texts.append(para.text)
+        # 표 내용도 추출
+        for table in doc.tables:
+            for row in table.rows:
+                row_text = " | ".join(
+                    cell.text.strip() for cell in row.cells if cell.text.strip()
+                )
+                if row_text:
+                    texts.append(row_text)
+        return "\n\n".join(texts)
+    except Exception:
+        return ""
 
 
 def _extract_with_fitz(path: Path) -> str:
@@ -166,21 +194,10 @@ async def delete_all_documents():
 
 @router.delete("/{source}")
 async def delete_document(source: str):
-    """특정 문서 청크 삭제 (Milvus + Neo4j)."""
     from app.services.rag.graph_store import graph_store
     chunks = get_chunks_by_source(source)
     if not chunks:
         raise HTTPException(status_code=404, detail="Document not found")
-    chunk_ids = [c["id"] for c in chunks]
-    delete_chunks(chunk_ids)
-    driver = graph_store._get_driver()
-    with driver.session() as session:
-        session.run(
-            "MATCH (d:Document {source: $source}) DETACH DELETE d",
-            source=source
-        )
-        session.run(
-            "MATCH (c:Chunk {source: $source}) DETACH DELETE c",
-            source=source
-        )
-    return {"deleted": source, "num_chunks": len(chunk_ids)}
+    delete_chunks_by_source(source)
+    graph_store.delete_document_and_chunks(source)
+    return {"deleted": source, "num_chunks": len(chunks)}

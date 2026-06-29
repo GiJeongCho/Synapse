@@ -97,7 +97,20 @@ class GraphStore:
         """Neo4j 전체 노드 및 관계 삭제."""
         driver = self._get_driver()
         with driver.session() as session:
-           session.run("MATCH (n) DETACH DELETE n")
+            session.run("MATCH (n) DETACH DELETE n")
+
+    def delete_document_and_chunks(self, source: str) -> None:
+        driver = self._get_driver()
+        with driver.session() as session:
+            session.run(
+                "MATCH (d:Document {source: $source}) DETACH DELETE d",
+                source=source
+            )
+            session.run(
+                "MATCH (c:Chunk {source: $source}) DETACH DELETE c",
+                source=source
+            )
+            
 
     def close(self) -> None:
         if self._driver is not None:
