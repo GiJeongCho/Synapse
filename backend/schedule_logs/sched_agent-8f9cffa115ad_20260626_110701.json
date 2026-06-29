@@ -1,0 +1,53 @@
+{
+  "schedule_id": "sched_agent-8f9cffa115ad",
+  "agent_id": "agent-8f9cffa115ad",
+  "started_at": "2026-06-26T02:06:59.713972+00:00",
+  "completed_at": "2026-06-26T02:07:01.132833+00:00",
+  "pipeline_status": "partial_failure",
+  "results": [
+    {
+      "tool_id": "bloomberg_news_summarizer__fetch_bloomberg_news",
+      "function": "fetch_bloomberg_news",
+      "result": {
+        "status": "success",
+        "result": {
+          "status": "error",
+          "articles": []
+        }
+      }
+    },
+    {
+      "tool_id": "bloomberg_news_summarizer__check_content_freshness",
+      "function": "check_content_freshness",
+      "result": {
+        "status": "error",
+        "exit_code": 1,
+        "stderr": "Traceback (most recent call last):\n  File \"<string>\", line 17, in <module>\n    result = func(**args)\nTypeError: check_content_freshness() missing 1 required positional argument: 'content_text'"
+      }
+    },
+    {
+      "tool_id": "bloomberg_news_summarizer__schedule_daily_task",
+      "function": "schedule_daily_task",
+      "result": {
+        "status": "skipped",
+        "reason": "스케줄 설정은 스케줄 페이지에서 관리"
+      }
+    },
+    {
+      "tool_id": "bloomberg_news_summarizer__send_email_summary",
+      "function": "send_email_summary",
+      "result": {
+        "status": "skipped",
+        "reason": "이전 단계 실패로 건너뜀"
+      }
+    },
+    {
+      "tool_id": "bloomberg_news_summarizer__summarize_content",
+      "function": "summarize_content",
+      "result": {
+        "status": "skipped",
+        "reason": "이전 단계 실패로 건너뜀"
+      }
+    }
+  ]
+}

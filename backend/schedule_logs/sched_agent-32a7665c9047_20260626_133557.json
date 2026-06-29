@@ -1,0 +1,86 @@
+{
+  "schedule_id": "sched_agent-32a7665c9047",
+  "agent_id": "agent-32a7665c9047",
+  "started_at": "2026-06-26T04:35:54.298373+00:00",
+  "completed_at": "2026-06-26T04:35:57.172403+00:00",
+  "pipeline_status": "partial_failure",
+  "failure_reason": "summarize_articles: 도구 실행 중 오류 발생",
+  "results": [
+    {
+      "tool_id": "finance_news_digest__fetch_yahoo_finance",
+      "function": "fetch_yahoo_finance",
+      "result": {
+        "status": "success",
+        "result": {
+          "status": "success",
+          "articles": [],
+          "content": "[]"
+        }
+      }
+    },
+    {
+      "tool_id": "finance_news_digest__extract_news_articles",
+      "function": "extract_news_articles",
+      "result": {
+        "status": "success",
+        "result": {
+          "status": "success",
+          "articles": [],
+          "count": 0
+        }
+      }
+    },
+    {
+      "tool_id": "finance_news_digest__summarize_articles",
+      "function": "summarize_articles",
+      "result": {
+        "status": "error",
+        "result": {
+          "status": "error",
+          "message": "ANTHROPIC_API_KEY not set"
+        }
+      },
+      "reason": "도구 실행 중 오류 발생"
+    },
+    {
+      "tool_id": "finance_news_digest__summarize_news",
+      "function": "summarize_news",
+      "result": {
+        "status": "skipped"
+      },
+      "reason": "이전 단계 실패로 건너뜀"
+    },
+    {
+      "tool_id": "finance_news_digest__send_digest_email",
+      "function": "send_digest_email",
+      "result": {
+        "status": "skipped"
+      },
+      "reason": "이전 단계 실패로 건너뜀"
+    },
+    {
+      "tool_id": "finance_news_digest__send_email_digest",
+      "function": "send_email_digest",
+      "result": {
+        "status": "skipped"
+      },
+      "reason": "이전 단계 실패로 건너뜀"
+    },
+    {
+      "tool_id": "finance_news_digest__schedule_hourly",
+      "function": "schedule_hourly",
+      "result": {
+        "status": "skipped"
+      },
+      "reason": "스케줄 설정은 스케줄 페이지에서 관리"
+    },
+    {
+      "tool_id": "finance_news_digest__deduplicate_articles",
+      "function": "deduplicate_articles",
+      "result": {
+        "status": "skipped"
+      },
+      "reason": "이전 단계 실패로 건너뜀"
+    }
+  ]
+}

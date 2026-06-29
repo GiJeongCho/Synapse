@@ -28,8 +28,10 @@ class Settings(BaseSettings):
     llm_model: str = "claude-sonnet-4-20250514"
 
     # ---- Embedding ----
-    embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2"
-    embedding_dim: int = 384
+    embedding_model: str = "Qwen/Qwen3-Embedding"
+    embedding_dim: int = 1024
+    embed_api_url: str = "http://ppsystem.kro.kr:5000"
+    rerank_api_url: str = "http://ppsystem.kro.kr:5000"
 
     # ---- Vector DB (Milvus Lite / Qdrant) ----
     milvus_uri: str = str(_BACKEND_ROOT / "synapse.db")
@@ -59,6 +61,21 @@ class Settings(BaseSettings):
     # ---- 에이전트 / 워크플로우 ----
     max_iteration: int = 3
     callback_url: str = ""
+
+    # ---- Meta-Agent ----
+    meta_critic_enabled: bool = True
+    meta_max_rounds: int = 2
+    meta_max_pipeline_retries: int = 3
+    meta_registry_similarity_threshold: float = 0.85
+    meta_registry_collection: str = "synapse_agent_registry"
+    meta_mcp_collection: str = "synapse_mcp_tools"
+
+    # ---- SMTP (메일 발송) ----
+    smtp_host: str = "smtp.naver.com"
+    smtp_port: int = 587
+    smtp_user: str = ""
+    smtp_password: str = ""
+    smtp_from: str = ""
 
     # ---- 업로드 ----
     upload_dir: str = str(_BACKEND_ROOT / "uploads")
@@ -109,6 +126,22 @@ class Settings(BaseSettings):
 
     @property
     def WRITER_AGENT(self) -> Dict[str, Any]:
+        return self._agent_cfg()
+
+    @property
+    def META_AGENT(self) -> Dict[str, Any]:
+        cfg = self._agent_cfg()
+        cfg["gen_params"] = {**cfg["gen_params"], "max_tokens": 16384}
+        return cfg
+
+    @property
+    def META_BUILDER_AGENT(self) -> Dict[str, Any]:
+        cfg = self._agent_cfg()
+        cfg["gen_params"] = {**cfg["gen_params"], "max_tokens": 16384}
+        return cfg
+
+    @property
+    def META_CRITIC_AGENT(self) -> Dict[str, Any]:
         return self._agent_cfg()
 
 

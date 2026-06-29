@@ -1,6 +1,22 @@
+
+## 백엔드 실행
+cd ~Synapse/backend
+pip install -r requirements.txt    # 최초 1회
+uvicorn app.main:app --reload --host 0.0.0.0 --port 2004
+
+
+## 프론트 실행
+cd ~Synapse/frontend
+npm install    # 최초 1회
+npm run dev
+
+
 # Synapse — Multi-Agent 리서치 시스템
 
 > 주제를 던지면 AI가 스스로 파고들어 리포트까지 작성하는 Multi-Agent 리서치 플랫폼
+
+> 👉 **처음 쓰시나요?** [`docs/시작_가이드.md`](docs/시작_가이드.md) 를 보세요.
+> 설치 → 말로 에이전트 만들기 → 메일 받기 까지 단계별로 안내합니다.
 
 프로젝트명: **synapse** · 프론트: **React (Vite + TS)** · 백엔드: **FastAPI + LangGraph**
 
@@ -15,6 +31,7 @@
 | React UI | **라우팅 셸 + placeholder** — 화면 기획 전 |
 
 **Meta-Agent 아키텍처**: [`docs/agent.md`](docs/agent.md)  
+**Harness 엔지니어링**: [`docs/harness.md`](docs/harness.md)  
 **폴더 구조 상세**: [`docs/project-structure.md`](docs/project-structure.md)  
 **에이전트 코딩 표준**: [`docs/agent-development-standards-v2.md`](docs/agent-development-standards-v2.md)
 

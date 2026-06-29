@@ -1,10 +1,14 @@
-"""CrawlAgentState — 기획 확정 후 필드 정의(§5)."""
-
+"""CrawlAgentState(§5)."""
 from __future__ import annotations
 
-from typing import TypedDict
+from typing import Any, Optional, TypedDict
 
 
 class CrawlAgentState(TypedDict, total=False):
     job_id: str
-    # TODO: urls, fetched, extracted, documents ...
+    url: str
+    raw_content: str
+    extracted_text: str
+    normalized_text: str
+    metadata: dict[str, Any]
+    error: Optional[str]

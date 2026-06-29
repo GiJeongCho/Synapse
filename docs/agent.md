@@ -25,6 +25,11 @@
 flowchart TB
     User["사용자 요구사항"]
 
+    subgraph EntryGate ["진입 게이트"]
+        Req["Requirements\nAnalyzer"]
+        RegCheck{"Agent Registry\n검색"}
+    end
+
     subgraph DualLoop ["쌍방 Supervisor 진화 루프"]
         direction TB
 
@@ -32,18 +37,18 @@ flowchart TB
             A_decide["전략 수립 / B 역평가"]
         end
 
-        subgraph SuperB ["Supervisor-B (Critic)"]
+        subgraph SuperB ["Supervisor-B (Critic) — 토글 가능"]
             B_eval["결과 평가 / 기준 관리"]
         end
 
         subgraph Pipeline ["에이전트 생성 파이프라인"]
-            Plan["1. Requirements Analyzer"]
             Retrieve["2. Tool Retriever"]
             Build["3. Provisioner"]
             Test["4. Evaluator"]
-            Plan --> Retrieve --> Build --> Test
+            Retrieve --> Build --> Test
         end
 
+        CriticToggle{"critic_enabled?"}
         Consensus{"합의 판정"}
     end
 
@@ -52,17 +57,27 @@ flowchart TB
         VectorDB["Vector DB"]
         GraphDB["Neo4j KG"]
         Docker["Docker"]
+        AgentDB[("Agent Registry\n(기존 에이전트 저장소)")]
     end
 
-    User --> A_decide
-    A_decide -->|"파이프라인 실행"| Plan
-    Test -->|"결과 전달"| B_eval
+    User --> Req
+    Req --> RegCheck
+    RegCheck -->|"기존 에이전트 존재"| Reuse["기존 에이전트 반환"]
+    RegCheck -->|"신규 생성 필요"| A_decide
+
+    A_decide -->|"파이프라인 실행"| Retrieve
+    Test --> CriticToggle
+    CriticToggle -->|"ON"| B_eval
+    CriticToggle -->|"OFF"| Deploy
+
     B_eval -->|"개선안"| A_decide
     A_decide -->|"역평가 / 기준 수정 제안"| B_eval
     B_eval --> Consensus
-    Consensus -->|"합의"| Deploy["배포"]
+    Consensus -->|"합의"| Deploy["배포 + Registry 등록"]
     Consensus -->|"미합의"| A_decide
 
+    RegCheck -.-> AgentDB
+    Deploy -.->|"신규 등록"| AgentDB
     Retrieve -.->|"MCP 검색"| MCP_Registry
     MCP_Registry -.-> VectorDB
     MCP_Registry -.-> GraphDB
@@ -70,49 +85,95 @@ flowchart TB
     Test -.->|"샌드박스 테스트"| Docker
 ```
 
-### 쌍방 Supervisor 라운드 흐름
+### 실행 모드 분기 — Solo vs Dual
+
+```mermaid
+flowchart LR
+    Start["요구사항 수신"] --> RA["Requirements\nAnalyzer"]
+    RA --> Lookup{"Agent Registry\n검색"}
+
+    Lookup -->|"HIT: 유사도 ≥ 임계값"| Found["기존 에이전트\n반환"]
+    Found --> Done["완료"]
+
+    Lookup -->|"MISS"| Mode{"critic_enabled?"}
+
+    Mode -->|"OFF — Solo 모드"| Solo
+    Mode -->|"ON — Dual 모드"| Dual
+
+    subgraph Solo ["Solo 모드 (토큰 절약)"]
+        S_pipe["Pipeline 1회 실행"] --> S_deploy["즉시 배포"]
+    end
+
+    subgraph Dual ["Dual 모드 (품질 극대화)"]
+        D_build["Builder 생성"] --> D_critic["Critic 평가"]
+        D_critic -->|"미합의"| D_build
+        D_critic -->|"합의"| D_deploy["배포"]
+    end
+
+    S_deploy --> Reg["Registry 등록"]
+    D_deploy --> Reg
+```
+
+### 쌍방 Supervisor 라운드 흐름 (Dual 모드)
 
 ```mermaid
 sequenceDiagram
     participant U as 사용자
+    participant R as Agent Registry
     participant A as Supervisor-A (Builder)
     participant P as 생성 파이프라인
     participant B as Supervisor-B (Critic)
     participant C as 합의 판정
 
-    U->>A: 요구사항 입력
+    U->>R: 요구사항 입력
+    R->>R: 기존 에이전트 검색
 
-    loop 라운드 (max 5회)
-        A->>P: 전략 반영 + 파이프라인 실행
-        activate P
-        P->>P: Plan → Retrieve → Build → Test
-        P-->>A: 생성 결과 + 테스트 결과
-        deactivate P
+    alt 기존 에이전트 존재
+        R-->>U: 기존 에이전트 반환 (생성 스킵)
+    else 신규 생성 필요
+        R->>A: 요구사항 전달
 
-        A->>B: 결과 전달
-        activate B
-        B->>B: 평가 (품질, 정확도, 지연 등)
-        B-->>A: 판정 + 개선안
-        deactivate B
+        alt critic_enabled = OFF (Solo 모드)
+            A->>P: 파이프라인 1회 실행
+            P-->>A: 결과
+            A->>R: 배포 + Registry 등록
+            R-->>U: 에이전트 반환
+        else critic_enabled = ON (Dual 모드)
+            loop 라운드 (max 5회)
+                A->>P: 전략 반영 + 파이프라인 실행
+                activate P
+                P->>P: Plan → Retrieve → Build → Test
+                P-->>A: 생성 결과 + 테스트 결과
+                deactivate P
 
-        alt A가 B의 평가에 동의
-            A->>C: 수용
-        else A가 B의 기준에 이의
-            A->>B: 역평가 (기준 수정 제안)
-            activate B
-            B->>B: 제안 수용 or 거부
-            B-->>A: 수정된 기준 or 기각
-            deactivate B
-            A->>C: 재평가 요청
-        end
+                A->>B: 결과 전달
+                activate B
+                B->>B: 평가 (품질, 정확도, 지연 등)
+                B-->>A: 판정 + 개선안
+                deactivate B
 
-        C->>C: 합의 여부 판정
-        alt 합의 도달
-            C-->>U: 최종 에이전트 배포
-        else 미합의 + 상한 미도달
-            C-->>A: 다음 라운드
-        else 상한 도달 or 교착
-            C-->>U: 최선 결과로 종료
+                alt A가 B의 평가에 동의
+                    A->>C: 수용
+                else A가 B의 기준에 이의
+                    A->>B: 역평가 (기준 수정 제안)
+                    activate B
+                    B->>B: 제안 수용 or 거부
+                    B-->>A: 수정된 기준 or 기각
+                    deactivate B
+                    A->>C: 재평가 요청
+                end
+
+                C->>C: 합의 여부 판정
+                alt 합의 도달
+                    C->>R: 배포 + Registry 등록
+                    R-->>U: 최종 에이전트 반환
+                else 미합의 + 상한 미도달
+                    C-->>A: 다음 라운드
+                else 상한 도달 or 교착
+                    C->>R: 최선 결과로 배포 + Registry 등록
+                    R-->>U: 에이전트 반환
+                end
+            end
         end
     end
 ```
@@ -154,7 +215,40 @@ flowchart LR
 | **MCP** | 각 노드(Agent)가 외부 인프라·데이터와 소통할 수 있도록 도구(Tool/Context)를 표준화된 규격으로 연결 |
 | **오케스트레이션** | 생성된 노드와 도구들을 그래프 형태로 엮어 전체 실행 궤도를 통제 |
 
-### 1-2. 핵심 원리 — "오케스트레이션을 평가하는 오케스트레이션"
+### 1-2. 두 가지 비용 절감 원칙
+
+#### 원칙 A — Critic 토글 (`critic_enabled`)
+
+Supervisor-B(Critic)는 **on/off가 가능**하다. 항상 쌍방 진화를 돌릴 필요는 없다.
+
+| 모드 | `critic_enabled` | 동작 | 토큰 비용 |
+|------|-------------------|------|-----------|
+| **Solo** | `false` | Builder가 파이프라인 1회 실행 → 즉시 배포 | **낮음** |
+| **Dual** | `true` | Builder + Critic 쌍방 진화 루프 (기존 방식) | 높음 |
+
+사용 지침:
+- **프로토타이핑·단순 작업** → Solo 모드로 빠르게 생성
+- **프로덕션·복잡한 작업** → Dual 모드로 품질 극대화
+- 설정: `config.meta_agent.critic_enabled = true | false`
+
+#### 원칙 B — Agent Registry (기존 에이전트 재사용)
+
+같은 요구사항이 들어오면 **이미 만들어진 에이전트를 재사용**한다. 재생성은 낭비다.
+
+```
+요구사항 수신 → Requirements Analyzer → Agent Registry 검색
+                                          ├── HIT  → 기존 에이전트 반환 (생성 스킵)
+                                          └── MISS → 신규 생성 → 배포 후 Registry 등록
+```
+
+| 항목 | 설명 |
+|------|------|
+| **저장 대상** | 에이전트 명세, 시스템 프롬프트, MCP 도구 목록, 프로젝트 파일, 테스트 결과 |
+| **매칭 기준** | 요구사항 임베딩 유사도 ≥ 임계값 (`REGISTRY_SIMILARITY_THRESHOLD`, 기본 0.85) |
+| **저장소** | Vector DB (Milvus) — 요구사항 임베딩으로 유사 에이전트 검색 |
+| **갱신** | Dual 모드에서 더 나은 결과가 나오면 기존 레코드를 버전업 |
+
+### 1-3. 핵심 원리 — "오케스트레이션을 평가하는 오케스트레이션"
 
 이 시스템의 본질은 **두 Supervisor가 서로를 평가하고 개선하면서 함께 진화**하는 것이다.
 
@@ -262,9 +356,28 @@ Meta-Agent를 구성하는 4개의 노드.
 
 ## 4. 오케스트레이션 설계 — 쌍방 Supervisor
 
+### 4-0. 진입 흐름 — Registry 조회 + 모드 분기
+
+모든 요청은 생성 전에 **두 단계 게이트**를 거친다.
+
+```
+[요구사항]
+    ↓
+[1. Requirements Analyzer] — 에이전트 명세 생성
+    ↓
+[2. Agent Registry 조회] — 기존 에이전트 유사도 검색 (Milvus)
+    ├── HIT (유사도 ≥ 0.85)  → 기존 에이전트 반환, 생성 스킵
+    └── MISS
+         ↓
+    [3. 모드 분기]
+         ├── critic_enabled = false  → Solo 모드 (파이프라인 1회 → 즉시 배포)
+         └── critic_enabled = true   → Dual 모드 (쌍방 진화 루프)
+```
+
 ### 4-1. 구조 — 서로를 평가하는 두 Supervisor
 
 고정된 **Supervisor 2개**가 서로의 산출물과 전략을 평가·수정하며 합의에 도달한다.
+Critic은 `critic_enabled` 설정으로 **on/off 토글 가능**하다.
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
@@ -272,7 +385,7 @@ Meta-Agent를 구성하는 4개의 노드.
 │                                                              │
 │   ┌─────────────────────┐     ┌─────────────────────┐       │
 │   │  Supervisor-A       │     │  Supervisor-B       │       │
-│   │  (Builder)          │     │  (Critic)           │       │
+│   │  (Builder)          │     │  (Critic) 🔛/🔴     │       │
 │   │                     │     │                     │       │
 │   │  - 에이전트 생성     │ ──→ │  - 결과 평가         │       │
 │   │  - 전략 수립         │     │  - 개선안 제시       │       │
@@ -282,14 +395,14 @@ Meta-Agent를 구성하는 4개의 노드.
 │            │                           │                     │
 │            └───── 합의 도달 ────────────┘                     │
 │                      ↓                                       │
-│                   Deploy                                     │
+│              Deploy + Registry 등록                           │
 └──────────────────────────────────────────────────────────────┘
 ```
 
-| Supervisor | 역할 | 모델 전략 |
-|------------|------|-----------|
-| **A (Builder)** | 에이전트를 만들고, 전략을 세우고, B의 평가를 역평가한다 | **경량 모델** (빈번한 생성·수정 작업) |
-| **B (Critic)** | A의 결과를 평가하고, 개선안을 제시하고, 평가 기준을 관리한다 | **경량 모델** (빈번한 평가 작업) |
+| Supervisor | 역할 | 토글 | 모델 전략 |
+|------------|------|------|-----------|
+| **A (Builder)** | 에이전트를 만들고, 전략을 세우고, B의 평가를 역평가한다 | 항상 ON | **경량 모델** (빈번한 생성·수정 작업) |
+| **B (Critic)** | A의 결과를 평가하고, 개선안을 제시하고, 평가 기준을 관리한다 | **ON/OFF 가능** | **경량 모델** (빈번한 평가 작업) |
 
 ### 4-2. 라운드 흐름 — 쌍방향 피드백 루프
 
@@ -389,6 +502,8 @@ Meta-Agent를 구성하는 4개의 노드.
 | 라운드 상한 | `MAX_ROUNDS` (기본 5) | 상한 도달 시 현재까지 최선의 결과로 graceful 종료 |
 | 합의 정체 | 2라운드 연속 양측 모두 변경 없음 (교착) | 현재 결과로 종료 |
 | 비용 한도 | 누적 토큰/비용이 임계값 초과 | 강제 종료 + 경고 |
+| Critic OFF | `critic_enabled = false` | 라운드 가드 자체가 불필요 (Solo 모드 = 1회 실행) |
+| Registry HIT | 기존 에이전트 유사도 ≥ 임계값 | 파이프라인 자체를 스킵 (토큰 비용 0) |
 
 ### 5-3. 기존 표준과의 정합
 
@@ -422,9 +537,10 @@ app/
 │   ├── meta_supervisor/
 │   │   ├── nodes/
 │   │   │   ├── builder_supervisor.py    # Supervisor-A (Builder)
-│   │   │   └── critic_supervisor.py     # Supervisor-B (Critic)
-│   │   ├── graph.py                     # create_dual_supervisor_workflow()
-│   │   ├── state.py                     # DualSupervisorState
+│   │   │   ├── critic_supervisor.py     # Supervisor-B (Critic) — 토글 가능
+│   │   │   └── registry_lookup.py       # Agent Registry 조회 노드
+│   │   ├── graph.py                     # create_meta_orchestrator() + create_dual_supervisor_workflow()
+│   │   ├── state.py                     # DualSupervisorState + AgentRegistryRecord
 │   │   └── prompts.py                   # A/B 각각의 시스템 프롬프트
 │   │
 │   ├── search_agent/
@@ -432,9 +548,13 @@ app/
 │   └── ...
 │
 ├── services/
-│   └── mcp/
-│       ├── registry.py              # MCP 도구 명세 관리 (KG/Vector DB)
-│       └── schema_store.py          # MCP 스키마 저장·검색
+│   ├── mcp/
+│   │   ├── registry.py              # MCP 도구 명세 관리 (KG/Vector DB)
+│   │   └── schema_store.py          # MCP 스키마 저장·검색
+│   │
+│   └── agent_registry/
+│       ├── store.py                 # Agent Registry CRUD (Milvus 기반)
+│       └── matcher.py               # 요구사항 임베딩 유사도 매칭
 │
 └── tools/
     └── mcp/
@@ -468,7 +588,32 @@ def create_meta_agent_workflow():
     return workflow.compile()
 ```
 
-**쌍방 Supervisor 루프** (진화의 본체):
+**최상위 워크플로우** (Registry 조회 + 모드 분기):
+
+```python
+def create_meta_orchestrator():
+    workflow = StateGraph(DualSupervisorState)
+
+    workflow.add_node("analyze", run_requirements_analyzer)
+    workflow.add_node("registry_lookup", run_registry_lookup)
+    workflow.add_node("solo_pipeline", run_solo_pipeline)        # Solo 모드: 파이프라인 1회
+    workflow.add_node("dual_loop", create_dual_supervisor_workflow())  # Dual 모드: 쌍방 진화
+    workflow.add_node("register", run_register_agent)            # 배포 후 Registry 등록
+
+    workflow.set_entry_point("analyze")
+    workflow.add_edge("analyze", "registry_lookup")
+    workflow.add_conditional_edges("registry_lookup", route_after_lookup, {
+        "hit": END,                          # 기존 에이전트 반환
+        "miss_solo": "solo_pipeline",        # critic_enabled=false
+        "miss_dual": "dual_loop",            # critic_enabled=true
+    })
+    workflow.add_edge("solo_pipeline", "register")
+    workflow.add_edge("dual_loop", "register")
+    workflow.add_edge("register", END)
+    return workflow.compile()
+```
+
+**쌍방 Supervisor 루프** (Dual 모드에서만 실행):
 
 ```python
 def create_dual_supervisor_workflow():
@@ -532,25 +677,48 @@ class DualSupervisorState(TypedDict):
     job_id: str
     user_request: str
 
+    # --- 실행 모드 ---
+    critic_enabled: bool                           # Critic on/off 토글 (기본 True)
+
+    # --- Agent Registry ---
+    registry_hit: bool                             # 기존 에이전트 매칭 여부
+    registry_match: Optional[dict]                 # 매칭된 기존 에이전트 (hit 시)
+    registry_similarity: float                     # 매칭 유사도 점수
+
     # 라운드 추적
-    round: int                                    # 현재 라운드 (0부터)
-    max_rounds: int                               # 상한 (기본 5)
-    history: Annotated[list[dict], operator.add]   # 라운드별 이력 누적
+    round: int                                     # 현재 라운드 (0부터)
+    max_rounds: int                                # 상한 (기본 5)
+    history: Annotated[list[dict], operator.add]    # 라운드별 이력 누적
 
     # Supervisor-A (Builder) 산출물
-    current_result: Optional[dict]                 # 생성된 에이전트 + 테스트 결과
-    builder_strategy: dict                         # A의 현재 전략 (모델, 도구, 프롬프트)
-    counter_review: Optional[dict]                 # A → B 역평가 (기준 수정 제안 등)
+    current_result: Optional[dict]                  # 생성된 에이전트 + 테스트 결과
+    builder_strategy: dict                          # A의 현재 전략 (모델, 도구, 프롬프트)
+    counter_review: Optional[dict]                  # A → B 역평가 (기준 수정 제안 등)
 
-    # Supervisor-B (Critic) 산출물
-    evaluation: Optional[dict]                     # B의 평가 결과
-    improvement_plan: Optional[dict]               # B의 개선안
-    eval_criteria: dict                            # B의 평가 기준 (라운드마다 수정 가능)
+    # Supervisor-B (Critic) 산출물 — critic_enabled=true 일 때만 사용
+    evaluation: Optional[dict]                      # B의 평가 결과
+    improvement_plan: Optional[dict]                # B의 개선안
+    eval_criteria: dict                             # B의 평가 기준 (라운드마다 수정 가능)
 
     # 합의
-    is_agreed: bool                                # 양측 합의 여부
-    best_result: Optional[dict]                    # 전 라운드 중 최고 결과
-    stale_count: int                               # 연속 무변경 카운트 (교착 감지)
+    is_agreed: bool                                 # 양측 합의 여부
+    best_result: Optional[dict]                     # 전 라운드 중 최고 결과
+    stale_count: int                                # 연속 무변경 카운트 (교착 감지)
+
+
+class AgentRegistryRecord(TypedDict):
+    """Agent Registry에 저장되는 에이전트 레코드"""
+    agent_id: str                                   # 고유 ID
+    user_request: str                               # 원본 요구사항
+    request_embedding: list[float]                  # 요구사항 임베딩 벡터
+    agent_spec: dict                                # 에이전트 명세
+    system_prompt: str                              # 시스템 프롬프트
+    mcp_tools: list[dict]                           # MCP 도구 목록
+    project_files: dict                             # 생성된 코드/설정 파일
+    test_result: dict                               # 최종 테스트 결과
+    created_at: str                                 # 생성 시각
+    version: int                                    # 버전 (Dual 모드 재배포 시 증가)
+    mode: str                                       # "solo" | "dual"
 ```
 
 ### 6-4. 해결해야 할 설계 과제
@@ -564,6 +732,9 @@ class DualSupervisorState(TypedDict):
 | 샌드박스 환경 | Evaluator가 사용할 테스트 샌드박스 (Docker-in-Docker vs 로컬 venv) | 미정 |
 | 동적 그래프 생성 | 생성된 에이전트의 노드 구성을 런타임에 StateGraph로 조립하는 방법 | 미정 |
 | 역평가 범위 | A가 B의 어디까지 건드릴 수 있는지 (기준만? 프롬프트도? B의 모델도?) | 미정 |
+| Registry 유사도 임계값 | `REGISTRY_SIMILARITY_THRESHOLD` 최적값 (0.85가 적절한지, 도메인별 차별화 필요?) | 미정 |
+| Registry 버전 관리 | Dual 모드로 더 나은 결과가 나왔을 때 기존 레코드 업데이트 vs 버전 분기 전략 | 미정 |
+| Critic 자동 토글 | 작업 복잡도에 따라 `critic_enabled`를 자동으로 판단하는 휴리스틱 가능 여부 | 미정 |
 
 ---
 

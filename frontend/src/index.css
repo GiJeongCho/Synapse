@@ -171,3 +171,53 @@ pre {
   white-space: pre-wrap;
   word-break: break-word;
 }
+
+/* ── React Flow 다크 테마 오버라이드 ── */
+.react-flow {
+  background: #121520 !important;
+}
+
+.react-flow__edge-path {
+  stroke: #5a6278 !important;
+  stroke-width: 2 !important;
+}
+
+.react-flow__edge.animated .react-flow__edge-path {
+  stroke: var(--accent) !important;
+}
+
+.react-flow__edge-text,
+.react-flow__edge-textbg {
+  fill: var(--text) !important;
+}
+
+.react-flow__edge-textbg {
+  fill: #1e2230 !important;
+}
+
+.react-flow__controls {
+  background: var(--panel) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 8px !important;
+  box-shadow: none !important;
+}
+
+.react-flow__controls-button {
+  background: var(--panel) !important;
+  border-bottom: 1px solid var(--border) !important;
+  fill: var(--text) !important;
+}
+
+.react-flow__controls-button:hover {
+  background: #262a35 !important;
+}
+
+.react-flow__minimap {
+  background: var(--panel) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 8px !important;
+}
+
+.react-flow__background pattern line {
+  stroke: #1e2230 !important;
+}
