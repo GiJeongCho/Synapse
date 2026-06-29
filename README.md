@@ -15,6 +15,9 @@ npm run dev
 
 > 주제를 던지면 AI가 스스로 파고들어 리포트까지 작성하는 Multi-Agent 리서치 플랫폼
 
+> 👉 **처음 쓰시나요?** [`docs/시작_가이드.md`](docs/시작_가이드.md) 를 보세요.
+> 설치 → 말로 에이전트 만들기 → 메일 받기 까지 단계별로 안내합니다.
+
 프로젝트명: **synapse** · 프론트: **React (Vite + TS)** · 백엔드: **FastAPI + LangGraph**
 
 ---
