@@ -1,0 +1,61 @@
+{
+  "schedule_id": "sched_agent-1c459546604b",
+  "agent_id": "agent-1c459546604b",
+  "started_at": "2026-06-26T07:28:33.105578+00:00",
+  "completed_at": "2026-06-26T07:28:36.159667+00:00",
+  "pipeline_status": "success",
+  "failure_reason": "",
+  "results": [
+    {
+      "tool_id": "daily_econ_digest__fetch_economic_news",
+      "function": "fetch_economic_news",
+      "result": {
+        "status": "success",
+        "result": {
+          "status": "success",
+          "articles": [
+            {
+              "title": "Which AI Accelerator Stock Has Dominated in 2026: Broadcom or Marvell?",
+              "summary": "",
+              "link": "https://finance.yahoo.com/markets/stocks/articles/ai-accelerator-stock-dominated-2026-191650028.html"
+            },
+            {
+              "title": "Why Is The US Stock Market Up Today?",
+              "summary": "",
+              "link": "https://finance.yahoo.com/news/why-us-stock-market-today-175517641.html"
+            },
+            {
+              "title": "Roth Capital Upgrades ConocoPhillips (COP) to Buy. Here is Why",
+              "summary": "",
+              "link": "https://finance.yahoo.com/markets/stocks/articles/roth-capital-upgrades-conocophillips-cop-192203567.html"
+            },
+            {
+              "title": "Ladenburg Trims Price Target on American Electric Power Company (AEP)",
+              "summary": "",
+              "link": "https://finance.yahoo.com/energy/articles/ladenburg-trims-price-target-american-192258723.html"
+            },
+            {
+              "title": "Pfizer (PFE) Reaffirms FY 2026 Outlook Amid Leadership Change",
+              "summary": "",
+              "link": "https://finance.yahoo.com/healthcare/articles/pfizer-pfe-reaffirms-fy-2026-192147995.html"
+            }
+          ],
+          "content": "Which AI Accelerator Stock Has Dominated in 2026: Broadcom or Marvell? - \nWhy Is The US Stock Market Up Today? - \nRoth Capital Upgrades ConocoPhillips (COP) to Buy. Here is Why - \nLadenburg Trims Price Target on American Electric Power Company (AEP) - \nPfizer (PFE) Reaffirms FY 2026 Outlook Amid Leadership Change - ",
+          "article_count": 5
+        }
+      }
+    },
+    {
+      "tool_id": "daily_econ_digest__summarize_digest",
+      "function": "summarize_digest",
+      "result": {
+        "status": "success",
+        "result": {
+          "status": "success",
+          "summary": "# Economic News Summary\n\nThe stock market is experiencing broad gains today, with notable movements across several sectors. In technology, competition between AI accelerator stocks Broadcom and Marvell is intensifying, while energy stocks are mixed—ConocoPhillips received an upgrade to Buy from Roth Capital, but American Electric Power faced a price target reduction from Ladenburg. In the pharmaceutical sector, Pfizer has reaffirmed its 2026 financial outlook despite recent leadership changes, suggesting stability in the company's strategic direction.",
+          "content": "Which AI Accelerator Stock Has Dominated in 2026: Broadcom or Marvell? - \nWhy Is The US Stock Market Up Today? - \nRoth Capital Upgrades ConocoPhillips (COP) to Buy. Here is Why - \nLadenburg Trims Price Target on American Electric Power Company (AEP) - \nPfizer (PFE) Reaffirms FY 2026 Outlook Amid Leadership Change - "
+        }
+      }
+    }
+  ]
+}

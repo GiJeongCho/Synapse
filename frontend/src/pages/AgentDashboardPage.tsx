@@ -26,6 +26,12 @@ interface RunResult {
   tool_id: string;
   function: string;
   result: Record<string, unknown>;
+  reason?: string;
+  error_type?: string;
+  error_message?: string;
+  line?: number;
+  code?: string;
+  traceback?: string;
 }
 
 export default function AgentDashboardPage() {
@@ -73,11 +79,21 @@ export default function AgentDashboardPage() {
 
   const handleDelete = async (agentId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!window.confirm(`"${agentId}" 에이전트를 삭제하시겠습니까?\n연관된 MCP 도구도 함께 삭제됩니다.`)) return;
+    if (!window.confirm(`"${agentId}" 에이전트를 삭제하시겠습니까?\n전용 도구만 삭제되고, 공용/필수 도구는 보존됩니다.`)) return;
     try {
-      await deleteAgent(agentId);
+      const res = await deleteAgent(agentId);
       setAgents((prev) => prev.filter((a) => a.agent_id !== agentId));
       if (selected?.agent_id === agentId) setSelected(null);
+      const protectedN = res.protected_tools?.length ?? 0;
+      const keptN = res.kept_tools?.length ?? 0;
+      if (protectedN > 0 || keptN > 0) {
+        const lines = [
+          `도구 ${res.tools_deleted}개 삭제됨.`,
+          ...(res.protected_tools ?? []).map((t) => `보호: ${t.tool_id} (${t.reason})`),
+          ...(res.kept_tools ?? []).map((t) => `보존: ${t.tool_id} (${t.reason})`),
+        ];
+        window.alert(lines.join("\n"));
+      }
     } catch {
       setError("삭제 실패");
     }
@@ -103,7 +119,26 @@ export default function AgentDashboardPage() {
         }
       } else {
         setRunResults(res.results);
-        setRunMessage(res.status === "success" ? "모든 도구가 성공적으로 실행되었습니다." : "일부 도구 실행에 실패했습니다.");
+        if (res.failed) {
+          const reason = res.failure_reason || "일부 도구 실행에 실패했습니다.";
+          setRunMessage(`실행 실패 — ${reason}`);
+          const wantDelete = window.confirm(
+            `이 에이전트 실행이 실패했습니다.\n\n사유: ${reason}\n\n` +
+              `이 에이전트(${agentId})와 연결된 도구를 삭제하시겠습니까?`,
+          );
+          if (wantDelete) {
+            try {
+              await deleteAgent(agentId);
+              setAgents((prev) => prev.filter((a) => a.agent_id !== agentId));
+              setSelected(null);
+              return;
+            } catch {
+              setRunMessage("에이전트 삭제에 실패했습니다.");
+            }
+          }
+        } else {
+          setRunMessage("모든 도구가 성공적으로 실행되었습니다.");
+        }
       }
     } catch (e: unknown) {
       setRunStatus("error");
@@ -339,15 +374,38 @@ export default function AgentDashboardPage() {
                         {(r.result?.status as string) ?? "unknown"}
                       </span>
                     </div>
-                    <pre style={{
-                      fontSize: "0.72rem",
-                      margin: 0,
-                      maxHeight: 120,
-                      overflow: "auto",
-                      color: "#9ca3af",
-                    }}>
-                      {JSON.stringify(r.result?.result ?? r.result?.error ?? r.result?.stderr, null, 2)}
-                    </pre>
+                    {r.reason && (
+                      <p style={{ fontSize: "0.76rem", margin: "0 0 6px", color: "#fca5a5" }}>
+                        ⚠ {r.reason}
+                      </p>
+                    )}
+                    {r.traceback ? (
+                      <details>
+                        <summary style={{ fontSize: "0.72rem", color: "#9ca3af", cursor: "pointer" }}>
+                          상세 트레이스백
+                        </summary>
+                        <pre style={{
+                          fontSize: "0.7rem",
+                          margin: "4px 0 0",
+                          maxHeight: 160,
+                          overflow: "auto",
+                          color: "#9ca3af",
+                          whiteSpace: "pre-wrap",
+                        }}>
+                          {r.traceback}
+                        </pre>
+                      </details>
+                    ) : (
+                      <pre style={{
+                        fontSize: "0.72rem",
+                        margin: 0,
+                        maxHeight: 120,
+                        overflow: "auto",
+                        color: "#9ca3af",
+                      }}>
+                        {JSON.stringify(r.result?.result ?? r.result?.error ?? r.result?.stderr, null, 2)}
+                      </pre>
+                    )}
                   </div>
                 ))}
               </div>

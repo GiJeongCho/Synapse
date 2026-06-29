@@ -1,0 +1,8 @@
+{
+  "agent_id": "econ_news_emailer",
+  "name": "Summarize News",
+  "description": "Extract and summarize key economic insights from fetched news articles.",
+  "functions": [
+    "summarize_news"
+  ]
+}

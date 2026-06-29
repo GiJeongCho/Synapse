@@ -1,0 +1,8 @@
+{
+  "agent_id": "bloomberg_news_summarizer",
+  "name": "Parse and Summarize Bloomberg News",
+  "description": "Extract articles from RSS XML and generate concise summaries with deduplication",
+  "functions": [
+    "parse_and_summarize_news"
+  ]
+}

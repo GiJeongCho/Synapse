@@ -1,0 +1,8 @@
+{
+  "agent_id": "econ_news_daily_mailer",
+  "name": "Summarize Economic News",
+  "description": "Summarizes fetched economic news using Anthropic Claude API into concise, easy-to-understand format.",
+  "functions": [
+    "summarize_economic_news"
+  ]
+}

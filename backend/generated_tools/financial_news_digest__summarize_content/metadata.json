@@ -1,8 +1,0 @@
-{
-  "agent_id": "financial_news_digest",
-  "name": "Summarize with Claude API",
-  "description": "Summarize fetched news content using Anthropic Claude API for concise digest.",
-  "functions": [
-    "summarize_content"
-  ]
-}

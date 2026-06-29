@@ -1,0 +1,8 @@
+{
+  "agent_id": "econ_news_daily_mailer",
+  "name": "Fetch Economic News",
+  "description": "Fetches latest economic news from multiple sources with fallback strategy (RSS feeds, web scraping).",
+  "functions": [
+    "fetch_economic_news"
+  ]
+}

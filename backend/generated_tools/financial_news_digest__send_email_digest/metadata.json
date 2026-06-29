@@ -1,8 +1,0 @@
-{
-  "agent_id": "financial_news_digest",
-  "name": "Send Email Digest",
-  "description": "Send summarized news via SMTP to configured recipient with error handling.",
-  "functions": [
-    "send_email_digest"
-  ]
-}

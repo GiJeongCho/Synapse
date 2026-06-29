@@ -1,8 +1,0 @@
-{
-  "agent_id": "financial_news_digest",
-  "name": "Summarize Articles with Claude",
-  "description": "Summarize fetched articles using Claude API with token limits.",
-  "functions": [
-    "summarize_articles"
-  ]
-}

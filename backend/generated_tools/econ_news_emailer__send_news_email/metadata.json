@@ -1,0 +1,8 @@
+{
+  "agent_id": "econ_news_emailer",
+  "name": "Send News Email",
+  "description": "Send summarized economic news to wzxcv123@naver.com via SMTP.",
+  "functions": [
+    "send_news_email"
+  ]
+}

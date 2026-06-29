@@ -1,0 +1,8 @@
+{
+  "agent_id": "economy_news_digest",
+  "name": "Fetch Economy News",
+  "description": "Fetch latest economy news from multiple RSS feeds with deduplication by title hash.",
+  "functions": [
+    "fetch_economy_news"
+  ]
+}

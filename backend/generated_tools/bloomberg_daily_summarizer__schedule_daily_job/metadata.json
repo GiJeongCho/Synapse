@@ -1,0 +1,8 @@
+{
+  "agent_id": "bloomberg_daily_summarizer",
+  "name": "Schedule Daily Job",
+  "description": "Generate cron expression for 9 AM daily execution with 10-minute interval checks.",
+  "functions": [
+    "schedule_daily_job"
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "agent_id": "economy_news_digest",
+  "name": "Summarize News Digest",
+  "description": "Summarize fetched economy news using Claude Haiku with fallback to title-based summary.",
+  "functions": [
+    "summarize_news_digest"
+  ]
+}

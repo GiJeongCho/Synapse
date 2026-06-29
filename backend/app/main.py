@@ -21,7 +21,9 @@ setup_library_logging()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    from app.services.mcp.tool_runtime import ensure_shared_tools
     from app.services.scheduler.engine import startup, shutdown
+    ensure_shared_tools()
     startup()
     yield
     shutdown()

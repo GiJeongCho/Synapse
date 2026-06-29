@@ -11,10 +11,10 @@ from typing import Any
 
 from langchain_core.runnables import RunnableConfig
 
+from app.agents.meta_agent.harness import ainvoke_json
 from app.agents.meta_supervisor.prompts import COUNTER_REVIEW_PROMPT
 from app.agents.meta_supervisor.state import DualSupervisorState
 from app.core.llm.adapter import get_llm_for_agent
-from app.core.llm.utils import extract_json_from_llm_response
 from app.core.logging import logger
 
 log = logger(__name__)
@@ -37,8 +37,10 @@ async def counter_review(
         round=current_round,
         history=json.dumps(state.get("history", [])[-3:], ensure_ascii=False),
     )
-    response = await llm.ainvoke(messages)
-    review = extract_json_from_llm_response(response.content)
+    review = await ainvoke_json(
+        llm, messages, node="counter_review", retries=1,
+        fallback={"decision": "accept", "criteria_challenges": []},
+    )
 
     decision = review.get("decision", "accept")
 

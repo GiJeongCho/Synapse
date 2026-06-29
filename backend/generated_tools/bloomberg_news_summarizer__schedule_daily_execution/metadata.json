@@ -1,0 +1,8 @@
+{
+  "agent_id": "bloomberg_news_summarizer",
+  "name": "Schedule Daily Execution",
+  "description": "Return cron expression for scheduling execution every 10 minutes starting at 9 AM daily.",
+  "functions": [
+    "schedule_daily_execution"
+  ]
+}

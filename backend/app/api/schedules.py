@@ -110,12 +110,20 @@ async def api_run_now(schedule_id: str):
         raise HTTPException(status_code=404, detail=f"스케줄을 찾을 수 없습니다: {schedule_id}")
 
     try:
-        await _run_agent_tools(
+        pipeline_result = await _run_agent_tools(
             schedule_id=schedule_id,
             agent_id=target["agent_id"],
             tools=target["tools"],
         )
-        return {"status": "executed", "schedule_id": schedule_id}
+        return {
+            "status": "executed",
+            "schedule_id": schedule_id,
+            "agent_id": target["agent_id"],
+            "pipeline_status": pipeline_result.get("status", "unknown"),
+            "failed": pipeline_result.get("failed", False),
+            "failure_reason": pipeline_result.get("failure_reason", ""),
+            "results": pipeline_result.get("results", []),
+        }
     except Exception as exc:
         log.error("즉시 실행 실패: %s", exc)
         raise HTTPException(status_code=500, detail=str(exc))

@@ -96,6 +96,14 @@ async def get_agent_workflow(agent_id: str) -> dict[str, Any]:
         else:
             graph_data = graph_json
 
+        if not isinstance(graph_data, dict) or not graph_data.get("nodes"):
+            raise HTTPException(
+                status_code=404,
+                detail=f"No graph structure stored for agent: {agent_id}",
+            )
+
+        graph_data.setdefault("nodes", [])
+        graph_data.setdefault("edges", [])
         graph_data["agent_id"] = agent_id
         graph_data["display_name"] = record.get("user_request", agent_id)[:50]
         graph_data["category"] = "생성된 에이전트"

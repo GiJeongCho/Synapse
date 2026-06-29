@@ -1,0 +1,8 @@
+{
+  "agent_id": "bloomberg_daily_summarizer",
+  "name": "Fetch Bloomberg RSS Feed",
+  "description": "Fetch Bloomberg news from RSS feed (respects robots.txt), extract clean text, deduplicate by hash.",
+  "functions": [
+    "fetch_bloomberg_feed"
+  ]
+}

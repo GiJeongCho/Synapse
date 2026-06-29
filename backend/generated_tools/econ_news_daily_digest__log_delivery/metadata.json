@@ -1,0 +1,8 @@
+{
+  "agent_id": "econ_news_daily_digest",
+  "name": "Delivery Logger",
+  "description": "Log email delivery status and execution details to local audit file.",
+  "functions": [
+    "log_delivery"
+  ]
+}

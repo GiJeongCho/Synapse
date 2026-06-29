@@ -1,0 +1,8 @@
+{
+  "agent_id": "naver_econ_news_agent",
+  "name": "Economic News Summarizer",
+  "description": "Summarize fetched economic news articles using Claude LLM with focus on relevance and conciseness.",
+  "functions": [
+    "news_summarizer"
+  ]
+}

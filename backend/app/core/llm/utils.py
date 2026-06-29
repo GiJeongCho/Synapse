@@ -26,7 +26,7 @@ def _try_repair_truncated_json(text: str) -> Any | None:
 
     for _ in range(20):
         try:
-            return json.loads(s)
+            return json.loads(s, strict=False)
         except json.JSONDecodeError:
             pass
 
@@ -48,7 +48,7 @@ def _try_repair_truncated_json(text: str) -> Any | None:
             break
 
     try:
-        return json.loads(s)
+        return json.loads(s, strict=False)
     except json.JSONDecodeError:
         return None
 
@@ -67,15 +67,17 @@ def extract_json_from_llm_response(content: str) -> Any:
     fenced = _FENCE_RE.search(text)
     candidate = fenced.group(1) if fenced else text
 
+    # strict=False: 문자열 값 안의 실제 줄바꿈/탭 등 제어문자를 허용한다.
+    # (LLM이 "code" 같은 필드에 들여쓰기/줄바꿈을 그대로 넣어 기본 파서가 거부하는 사례 방지)
     try:
-        return json.loads(candidate)
+        return json.loads(candidate, strict=False)
     except json.JSONDecodeError:
         pass
 
     matched = _OBJ_RE.search(candidate)
     if matched:
         try:
-            return json.loads(matched.group(1))
+            return json.loads(matched.group(1), strict=False)
         except json.JSONDecodeError:
             repaired = _try_repair_truncated_json(matched.group(1))
             if repaired is not None:

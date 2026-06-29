@@ -51,7 +51,7 @@ def _save_schedules(schedules: list[dict[str, Any]]) -> None:
     )
 
 
-async def _run_agent_tools(schedule_id: str, agent_id: str, tools: list[dict]) -> None:
+async def _run_agent_tools(schedule_id: str, agent_id: str, tools: list[dict]) -> dict[str, Any]:
     """스케줄에 의해 호출 — 에이전트 파이프라인을 실행한다."""
     from app.services.agent_runner import run_agent_pipeline
 
@@ -67,12 +67,15 @@ async def _run_agent_tools(schedule_id: str, agent_id: str, tools: list[dict]) -
         "started_at": ts,
         "completed_at": datetime.now(timezone.utc).isoformat(),
         "pipeline_status": pipeline_result.get("status", "unknown"),
+        "failure_reason": pipeline_result.get("failure_reason", ""),
         "results": results,
     }
 
     log_file = _LOG_DIR / f"{schedule_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
     log_file.write_text(json.dumps(log_entry, ensure_ascii=False, indent=2), encoding="utf-8")
     log.info("스케줄 실행 완료: %s, 결과 %d건 → %s", schedule_id, len(results), log_file.name)
+
+    return pipeline_result
 
 
 def register_schedule(

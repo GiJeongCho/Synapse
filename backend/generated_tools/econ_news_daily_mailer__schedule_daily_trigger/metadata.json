@@ -1,0 +1,8 @@
+{
+  "agent_id": "econ_news_daily_mailer",
+  "name": "Daily Schedule Trigger",
+  "description": "Triggers the workflow every day at 9:00 AM KST using APScheduler.",
+  "functions": [
+    "schedule_daily_trigger"
+  ]
+}

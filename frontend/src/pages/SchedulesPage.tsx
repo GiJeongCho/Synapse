@@ -6,6 +6,7 @@ import {
   getScheduleLogs,
   runScheduleNow,
   listRegistry,
+  deleteAgent,
 } from "../api/client";
 
 interface Schedule {
@@ -24,7 +25,15 @@ interface LogEntry {
   agent_id: string;
   started_at: string;
   completed_at: string;
-  results: { tool_id: string; function: string; result: Record<string, unknown> }[];
+  pipeline_status?: string;
+  failure_reason?: string;
+  results: {
+    tool_id: string;
+    function: string;
+    result: Record<string, unknown>;
+    reason?: string;
+    traceback?: string;
+  }[];
 }
 
 const CRON_PRESETS = [
@@ -107,14 +116,48 @@ export default function SchedulesPage() {
 
   async function handleRunNow(scheduleId: string) {
     setRunningNow(scheduleId);
+    setError("");
     try {
-      await runScheduleNow(scheduleId);
-      setSuccess("즉시 실행 완료!");
-      setTimeout(() => setSuccess(""), 3000);
+      const res = await runScheduleNow(scheduleId);
+      if (res.failed) {
+        await handleFailedRun(scheduleId, res.agent_id, res.failure_reason);
+      } else {
+        setSuccess("즉시 실행 완료!");
+        setTimeout(() => setSuccess(""), 3000);
+      }
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "실행 실패");
     } finally {
       setRunningNow(null);
+    }
+  }
+
+  async function handleFailedRun(
+    scheduleId: string,
+    agentId?: string,
+    reason?: string,
+  ) {
+    const msg = reason || "도구 실행 중 오류가 발생했습니다.";
+    setError(`실행 실패 — ${msg}`);
+
+    if (!agentId) return;
+
+    const wantDelete = window.confirm(
+      `이 에이전트 실행이 실패했습니다.\n\n사유: ${msg}\n\n` +
+        `이 에이전트(${agentId})와 연결된 도구·스케줄을 모두 삭제하시겠습니까?`,
+    );
+    if (!wantDelete) return;
+
+    try {
+      await removeSchedule(scheduleId);
+      await deleteAgent(agentId);
+      setSchedules((prev) => prev.filter((s) => s.schedule_id !== scheduleId));
+      setError("");
+      setSuccess(`에이전트 ${agentId} 및 스케줄을 삭제했습니다.`);
+      setTimeout(() => setSuccess(""), 4000);
+      await refresh();
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "에이전트 삭제 실패");
     }
   }
 
@@ -328,31 +371,100 @@ export default function SchedulesPage() {
                         <span className="muted" style={{ fontSize: "0.72rem" }}>
                           {entry.started_at}
                         </span>
-                        <span
-                          className="badge"
+                        {(() => {
+                          const ok = entry.pipeline_status
+                            ? entry.pipeline_status === "success"
+                            : entry.results.every(
+                                (r) =>
+                                  r.result?.status === "success" ||
+                                  r.result?.status === "skipped",
+                              );
+                          return (
+                            <span
+                              className="badge"
+                              style={{
+                                background: ok ? "#22c55e" : "#ef4444",
+                                fontSize: "0.68rem",
+                              }}
+                            >
+                              {ok ? "성공" : "오류"}
+                            </span>
+                          );
+                        })()}
+                      </div>
+                      {entry.failure_reason && (
+                        <p
                           style={{
-                            background:
-                              entry.results.every((r) => r.result?.status === "success")
-                                ? "#22c55e"
-                                : "#ef4444",
-                            fontSize: "0.68rem",
+                            fontSize: "0.75rem",
+                            margin: "4px 0 6px",
+                            color: "#fca5a5",
                           }}
                         >
-                          {entry.results.every((r) => r.result?.status === "success")
-                            ? "성공"
-                            : "오류"}
-                        </span>
-                      </div>
-                      {entry.results.map((r, j) => (
-                        <p
-                          key={j}
-                          className="muted"
-                          style={{ fontSize: "0.75rem", margin: "2px 0" }}
-                        >
-                          {r.tool_id}/{r.function} →{" "}
-                          {(r.result as Record<string, unknown>)?.status as string ?? "?"}
+                          ⚠ {entry.failure_reason}
                         </p>
-                      ))}
+                      )}
+                      {entry.results.map((r, j) => {
+                        const st =
+                          ((r.result as Record<string, unknown>)?.status as string) ?? "?";
+                        const color =
+                          st === "success"
+                            ? "#22c55e"
+                            : st === "error"
+                              ? "#ef4444"
+                              : "#9ca3af";
+                        return (
+                          <div
+                            key={j}
+                            className="muted"
+                            style={{ fontSize: "0.75rem", margin: "2px 0" }}
+                          >
+                            {r.tool_id}/{r.function} →{" "}
+                            <span style={{ color }}>{st}</span>
+                            {r.reason && (
+                              <span style={{ color: "#fca5a5" }}> · {r.reason}</span>
+                            )}
+                            {r.traceback && (
+                              <details style={{ marginTop: 2 }}>
+                                <summary style={{ cursor: "pointer", color: "#9ca3af" }}>
+                                  상세 트레이스백
+                                </summary>
+                                <pre style={{
+                                  fontSize: "0.68rem",
+                                  margin: "2px 0 0",
+                                  maxHeight: 140,
+                                  overflow: "auto",
+                                  whiteSpace: "pre-wrap",
+                                  color: "#9ca3af",
+                                }}>
+                                  {r.traceback}
+                                </pre>
+                              </details>
+                            )}
+                          </div>
+                        );
+                      })}
+                      {entry.pipeline_status &&
+                        entry.pipeline_status !== "success" && (
+                          <button
+                            className="secondary"
+                            style={{
+                              marginTop: 6,
+                              fontSize: "0.72rem",
+                              padding: "3px 10px",
+                              color: "#ef4444",
+                              borderColor: "#ef4444",
+                            }}
+                            onClick={() =>
+                              handleFailedRun(
+                                entry.schedule_id,
+                                entry.agent_id,
+                                entry.failure_reason,
+                              )
+                            }
+                          >
+                            이 에이전트 삭제
+                          </button>
+                        )}
                     </div>
                   ))
                 )}

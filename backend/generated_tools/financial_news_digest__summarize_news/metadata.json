@@ -1,8 +1,0 @@
-{
-  "agent_id": "financial_news_digest",
-  "name": "Summarize Financial News",
-  "description": "Condense fetched news into 150-word summary with key metrics and market trends.",
-  "functions": [
-    "summarize_news"
-  ]
-}

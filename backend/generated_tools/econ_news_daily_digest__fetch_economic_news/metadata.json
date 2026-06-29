@@ -1,0 +1,8 @@
+{
+  "agent_id": "econ_news_daily_digest",
+  "name": "Economic News Fetcher",
+  "description": "Fetch latest economic news from multiple RSS and web sources with fallback strategy.",
+  "functions": [
+    "fetch_economic_news"
+  ]
+}

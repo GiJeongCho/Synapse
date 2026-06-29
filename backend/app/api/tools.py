@@ -8,11 +8,82 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
 from app.core.logging import logger
-from app.services.mcp.tool_runtime import execute_tool, list_tools, save_tool
+from app.services.mcp.tool_runtime import (
+    dedupe_generated_tools,
+    execute_tool,
+    list_tools,
+    remove_orphan_tools,
+    save_tool,
+)
 
 log = logger(__name__)
 
 router = APIRouter()
+
+
+def _known_agent_prefixes() -> set[str]:
+    """레지스트리에 등록된 에이전트의 식별자/도구 접두사를 모두 수집한다."""
+    import json as _json
+
+    from app.core.config import settings
+    from app.services.agent_registry import store as registry_store
+    from app.vectordb.milvus_client import get_client
+
+    known: set[str] = set()
+    registry_store.ensure_collection()
+    client = get_client()
+    rows = client.query(
+        collection_name=settings.meta_registry_collection,
+        filter="",
+        output_fields=["agent_id", "project_files"],
+        limit=1000,
+    )
+    for r in rows:
+        for key in ("id", "agent_id"):
+            v = r.get(key)
+            if v:
+                known.add(str(v))
+        pf = r.get("project_files")
+        if isinstance(pf, str):
+            try:
+                pf = _json.loads(pf)
+            except (ValueError, TypeError):
+                pf = None
+        if isinstance(pf, dict):
+            if pf.get("agent_id"):
+                known.add(str(pf["agent_id"]))
+            for t in pf.get("tools", []):
+                tid = t.get("tool_id") if isinstance(t, dict) else None
+                if tid:
+                    known.add(str(tid).split("__", 1)[0])
+    return known
+
+
+@router.post("/cleanup")
+async def cleanup_tools(remove_orphans: bool = True):
+    """중복 도구를 정리한다.
+
+    - remove_orphans=True: 레지스트리에 없는(삭제된) 에이전트의 잔여 도구 그룹 삭제
+    - 항상: 에이전트별 단계당 1개만 남기고 중복 도구 삭제
+    """
+    orphan_report: dict[str, Any] = {"deleted": [], "kept_groups": []}
+    if remove_orphans:
+        try:
+            known = _known_agent_prefixes()
+            orphan_report = remove_orphan_tools(known)
+        except Exception as exc:  # noqa: BLE001 — 레지스트리 조회 실패해도 dedup 은 진행
+            log.warning("고아 도구 정리 건너뜀(레지스트리 조회 실패): %s", exc)
+            orphan_report["error"] = str(exc)
+
+    dedup_report = dedupe_generated_tools()
+
+    return {
+        "status": "ok",
+        "orphans_removed": len(orphan_report.get("deleted", [])),
+        "duplicates_removed": len(dedup_report.get("deleted", [])),
+        "orphan_detail": orphan_report,
+        "dedup_detail": dedup_report,
+    }
 
 
 class ToolListResponse(BaseModel):

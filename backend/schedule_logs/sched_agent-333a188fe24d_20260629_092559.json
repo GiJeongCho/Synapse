@@ -1,0 +1,56 @@
+{
+  "schedule_id": "sched_agent-333a188fe24d",
+  "agent_id": "agent-333a188fe24d",
+  "started_at": "2026-06-29T00:25:46.837876+00:00",
+  "completed_at": "2026-06-29T00:25:59.581416+00:00",
+  "pipeline_status": "partial_failure",
+  "failure_reason": "naver_econ_news_fetcher: 도구 실행 중 오류 발생 — All sources failed: https://rss.naver.com/news.xml?category=101: [Errno -5] No address associated with hostname; https://rss.naver.com/news.xml?category=101: [Errno -5] No address associated with hostname; https://rss.naver.com/news.xml?category=101: [Errno -5] No address associated with hostname; h",
+  "results": [
+    {
+      "tool_id": "naver_econ_news_daily__naver_econ_news_fetcher",
+      "function": "naver_econ_news_fetcher",
+      "result": {
+        "status": "error",
+        "result": {
+          "status": "error",
+          "articles": [],
+          "content": "",
+          "message": "All sources failed: https://rss.naver.com/news.xml?category=101: [Errno -5] No address associated with hostname; https://rss.naver.com/news.xml?category=101: [Errno -5] No address associated with hostname; https://rss.naver.com/news.xml?category=101: [Errno -5] No address associated with hostname; https://rss.naver.com/news.xml?category=100: [Errno -5] No address associated with hostname; https://rss.naver.com/news.xml?category=100: [Errno -5] No address associated with hostname; https://rss.naver.com/news.xml?category=100: [Errno -5] No address associated with hostname"
+        }
+      },
+      "reason": "도구 실행 중 오류 발생 — All sources failed: https://rss.naver.com/news.xml?category=101: [Errno -5] No address associated with hostname; https://rss.naver.com/news.xml?category=101: [Errno -5] No address associated with hostname; https://rss.naver.com/news.xml?category=101: [Errno -5] No address associated with hostname; h"
+    },
+    {
+      "tool_id": "naver_econ_news_daily__news_summarizer",
+      "function": "news_summarizer",
+      "result": {
+        "status": "skipped"
+      },
+      "reason": "이전 단계 실패로 건너뜀"
+    },
+    {
+      "tool_id": "naver_econ_news_daily__email_deliverer",
+      "function": "email_deliverer",
+      "result": {
+        "status": "skipped"
+      },
+      "reason": "이전 단계 실패로 건너뜀"
+    },
+    {
+      "tool_id": "naver_econ_news_daily__daily_scheduler",
+      "function": "daily_scheduler",
+      "result": {
+        "status": "skipped"
+      },
+      "reason": "이전 단계 실패로 건너뜀"
+    },
+    {
+      "tool_id": "naver_econ_news_daily__daily_scheduler",
+      "function": "_calculate_next_run",
+      "result": {
+        "status": "skipped"
+      },
+      "reason": "이전 단계 실패로 건너뜀"
+    }
+  ]
+}

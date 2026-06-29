@@ -1,0 +1,8 @@
+{
+  "agent_id": "naver_econ_news_agent",
+  "name": "Email Dispatcher",
+  "description": "Send summarized economic news to wzxcv123@naver.com via SMTP with HTML formatting and timestamp.",
+  "functions": [
+    "email_dispatcher"
+  ]
+}

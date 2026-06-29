@@ -1,0 +1,8 @@
+{
+  "agent_id": "econ_news_daily_digest",
+  "name": "Daily 9 AM Scheduler",
+  "description": "Trigger workflow execution every day at 9:00 AM using cron expression.",
+  "functions": [
+    "schedule_daily_9am"
+  ]
+}

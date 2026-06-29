@@ -1,0 +1,8 @@
+{
+  "agent_id": "econ_news_digest",
+  "name": "Fetch Economic News",
+  "description": "Fetch latest economic news from multiple RSS feeds with fallback sources.",
+  "functions": [
+    "fetch_economic_news"
+  ]
+}

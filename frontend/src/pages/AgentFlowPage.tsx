@@ -86,6 +86,11 @@ export default function AgentFlowPage() {
       } else {
         data = await getAgentWorkflowGraph(name);
       }
+      // 방어: nodes/edges 누락 시 빈 배열 보장 (렌더 크래시 방지)
+      data = { ...data, nodes: data.nodes ?? [], edges: data.edges ?? [] };
+      if (data.nodes.length === 0) {
+        throw new Error("empty graph");
+      }
       setGraph(data);
     } catch {
       const fallback = STATIC_FALLBACKS[name];

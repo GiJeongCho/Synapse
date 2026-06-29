@@ -43,9 +43,13 @@ export async function getAgentDetail(
   return data;
 }
 
-export async function deleteAgent(
-  agentId: string,
-): Promise<{ status: string; agent_id: string; tools_deleted: number }> {
+export async function deleteAgent(agentId: string): Promise<{
+  status: string;
+  agent_id: string;
+  tools_deleted: number;
+  protected_tools?: { tool_id: string; reason: string }[];
+  kept_tools?: { tool_id: string; reason: string }[];
+}> {
   const { data } = await api.delete(`/api/meta-agent/registry/${agentId}`);
   return data;
 }
@@ -66,8 +70,10 @@ export async function runAgent(agentId: string) {
     status: string;
     agent_id?: string;
     message?: string;
+    failed?: boolean;
+    failure_reason?: string;
     failed_checks?: { capability: string; label: string; ok: boolean; hint: string }[];
-    results: { tool_id: string; function: string; result: Record<string, unknown> }[];
+    results: { tool_id: string; function: string; result: Record<string, unknown>; reason?: string }[];
   };
 }
 
@@ -153,7 +159,15 @@ export async function getScheduleLogs(scheduleId: string, limit = 20) {
 
 export async function runScheduleNow(scheduleId: string) {
   const { data } = await api.post(`/api/schedules/${scheduleId}/run-now`);
-  return data;
+  return data as {
+    status: string;
+    schedule_id: string;
+    agent_id?: string;
+    pipeline_status?: string;
+    failed?: boolean;
+    failure_reason?: string;
+    results?: { tool_id: string; function: string; result: Record<string, unknown>; reason?: string }[];
+  };
 }
 
 export async function executeTool(

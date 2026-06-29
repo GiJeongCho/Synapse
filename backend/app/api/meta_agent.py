@@ -129,8 +129,18 @@ async def list_registry():
 
 @router.delete("/registry/{agent_id}")
 async def delete_agent(agent_id: str):
-    """에이전트를 Registry에서 삭제하고, 연관된 MCP 도구도 함께 삭제한다."""
-    from app.services.mcp.tool_runtime import delete_tools_for_agent
+    """에이전트를 Registry에서 삭제한다.
+
+    연관된 MCP 도구도 함께 정리하되, 도구 청소부(심판) 에이전트가
+    공용/필수/타 에이전트 사용 도구를 보호하고 전용 도구만 삭제한다.
+    """
+    from app.services.mcp.tool_janitor import judge_tool_deletions
+    from app.services.mcp.tool_runtime import (
+        delete_tool,
+        delete_tools_for_agent,
+        list_tools,
+        resolve_agent_tools,
+    )
 
     try:
         registry_store.ensure_collection()
@@ -140,20 +150,66 @@ async def delete_agent(agent_id: str):
         results = client.query(
             collection_name=settings.meta_registry_collection,
             filter=f'id == "{agent_id}"',
-            output_fields=["agent_id"],
+            output_fields=["agent_id", "project_files"],
             limit=1,
         )
         stored_agent_id = results[0].get("agent_id", agent_id) if results else agent_id
+
+        # 실제 도구 폴더는 provisioner의 snake_case agent_id로 prefix되므로
+        # project_files를 이용해 정확히 찾아 삭제한다.
+        project_files = None
+        if results:
+            pf_raw = results[0].get("project_files")
+            if isinstance(pf_raw, str):
+                try:
+                    import json as _json
+                    project_files = _json.loads(pf_raw)
+                except (ValueError, TypeError):
+                    project_files = None
+            elif isinstance(pf_raw, dict):
+                project_files = pf_raw
+
+        # 후보 도구 수집: project_files 매칭 + prefix 매칭(공용 도구 제외)
+        candidates = list(resolve_agent_tools(agent_id, project_files))
+        seen = {t["tool_id"] for t in candidates}
+        for t in list_tools(include_shared=False):
+            tid = t["tool_id"]
+            if tid in seen:
+                continue
+            if tid.startswith(f"{stored_agent_id}__") or tid.startswith(f"{agent_id}__"):
+                candidates.append(t)
+                seen.add(tid)
+
+        # 심판: 어떤 도구를 지울지 판단 (공용/필수/타 에이전트 도구는 보호)
+        verdict = await judge_tool_deletions(agent_id, stored_agent_id, candidates)
 
         ok = registry_store.delete(agent_id)
         if not ok:
             raise HTTPException(status_code=500, detail="삭제 실패")
 
-        tools_deleted = delete_tools_for_agent(stored_agent_id)
-        tools_deleted += delete_tools_for_agent(agent_id)
+        protected_ids = {p["tool_id"] for p in verdict["protected"]}
+        kept_ids = {k["tool_id"] for k in verdict["kept_by_judge"]}
+        keep_set = protected_ids | kept_ids
 
-        log.info("에이전트 삭제 완료: %s (도구 %d개 삭제)", agent_id, tools_deleted)
-        return {"status": "deleted", "agent_id": agent_id, "tools_deleted": tools_deleted}
+        tools_deleted = 0
+        for tid in verdict["delete"]:
+            if delete_tool(tid):
+                tools_deleted += 1
+        # 보조 경로: prefix 매칭으로 누락분 정리(보호 도구는 제외)
+        tools_deleted += delete_tools_for_agent(stored_agent_id, keep=keep_set)
+        tools_deleted += delete_tools_for_agent(agent_id, keep=keep_set)
+
+        log.info(
+            "에이전트 삭제 완료: %s (도구 %d개 삭제, 보호 %d, 보존 %d)",
+            agent_id, tools_deleted, len(protected_ids), len(kept_ids),
+        )
+        return {
+            "status": "deleted",
+            "agent_id": agent_id,
+            "tools_deleted": tools_deleted,
+            "protected_tools": verdict["protected"],
+            "kept_tools": verdict["kept_by_judge"],
+        }
     except HTTPException:
         raise
     except Exception as exc:

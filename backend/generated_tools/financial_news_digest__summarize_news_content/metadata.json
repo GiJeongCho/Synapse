@@ -1,8 +1,0 @@
-{
-  "agent_id": "financial_news_digest",
-  "name": "Summarize News Content",
-  "description": "Generates concise 200-300 word summary of financial news articles.",
-  "functions": [
-    "summarize_news_content"
-  ]
-}

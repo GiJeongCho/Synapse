@@ -1,8 +1,0 @@
-{
-  "agent_id": "financial_news_digest",
-  "name": "Deduplicate News Items",
-  "description": "Removes duplicate news items using hash-based comparison and memory storage.",
-  "functions": [
-    "deduplicate_news"
-  ]
-}

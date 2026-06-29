@@ -1,0 +1,8 @@
+{
+  "agent_id": "econ_news_daily",
+  "name": "Summarize Economic News",
+  "description": "Summarize fetched economic news using Claude API, keeping output under 500 characters.",
+  "functions": [
+    "summarize_econ_news"
+  ]
+}

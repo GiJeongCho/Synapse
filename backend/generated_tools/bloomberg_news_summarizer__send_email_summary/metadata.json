@@ -1,8 +1,0 @@
-{
-  "agent_id": "bloomberg_news_summarizer",
-  "name": "Send Email Summary",
-  "description": "Sends summarized news via SMTP with authentication and error handling.",
-  "functions": [
-    "send_email_summary"
-  ]
-}
