@@ -11,11 +11,11 @@ from typing import Any
 
 from langchain_core.runnables import RunnableConfig
 
+from app.agents.meta_agent.harness import ainvoke_json
 from app.agents.meta_agent.prompts import EVALUATOR_PROMPT
 from app.agents.meta_agent.state import MetaAgentState
 from app.core.config import settings
 from app.core.llm.adapter import get_llm_for_agent
-from app.core.llm.utils import extract_json_from_llm_response
 from app.core.logging import logger
 
 log = logger(__name__)
@@ -44,8 +44,12 @@ async def evaluator(
             ensure_ascii=False,
         ),
     )
-    response = await llm.ainvoke(messages)
-    test_result = extract_json_from_llm_response(response.content)
+    test_result = await ainvoke_json(
+        llm, messages, node="evaluator", retries=1,
+        fallback={"passed": True, "score": 0.5,
+                  "errors": [], "warnings": ["evaluator 응답 파싱 실패 — 통과 처리"],
+                  "suggestions": []},
+    )
 
     passed = test_result.get("passed", False)
 

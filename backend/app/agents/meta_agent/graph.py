@@ -1,15 +1,20 @@
 """Meta-Agent 파이프라인 그래프(§4).
 
-requirements → tool_retriever → provisioner → evaluator
-                                      ↑              │
-                                      └── retry ──────┘ (max 3)
+requirements → planner → tool_retriever → provisioner → evaluator → completer → END
+                                              ↑              │
+                                              └── retry ──────┘ (max 3)
+
+- planner:  도구 vs 작은 에이전트 판단 + todolist + 구조 설계
+- completer: 계획(todolist) 대비 실제 빌드 완료 검증/보고
 """
 
 from __future__ import annotations
 
 from langgraph.graph import END, StateGraph
 
+from app.agents.meta_agent.nodes.completer import completer
 from app.agents.meta_agent.nodes.evaluator import evaluator
+from app.agents.meta_agent.nodes.planner import planner
 from app.agents.meta_agent.nodes.provisioner import provisioner
 from app.agents.meta_agent.nodes.requirements import requirements_analyzer
 from app.agents.meta_agent.nodes.tool_retriever import tool_retriever
@@ -39,17 +44,21 @@ def create_meta_agent_workflow():
     workflow = StateGraph(MetaAgentState)
 
     workflow.add_node("requirements", requirements_analyzer)
+    workflow.add_node("planner", planner)
     workflow.add_node("tool_retriever", tool_retriever)
     workflow.add_node("provisioner", provisioner)
     workflow.add_node("evaluator", evaluator)
+    workflow.add_node("completer", completer)
 
     workflow.set_entry_point("requirements")
-    workflow.add_edge("requirements", "tool_retriever")
+    workflow.add_edge("requirements", "planner")
+    workflow.add_edge("planner", "tool_retriever")
     workflow.add_edge("tool_retriever", "provisioner")
     workflow.add_edge("provisioner", "evaluator")
     workflow.add_conditional_edges("evaluator", _route_after_eval, {
-        "done": END,
+        "done": "completer",
         "retry": "provisioner",
     })
+    workflow.add_edge("completer", END)
 
     return workflow.compile()

@@ -1,0 +1,36 @@
+[
+  {
+    "schedule_id": "sched_agent-7da1b7ed42a0",
+    "agent_id": "agent-7da1b7ed42a0",
+    "cron": "10 9 * * *",
+    "description": "",
+    "tools": [
+      {
+        "tool_id": "naver_econ_news_agent__daily_scheduler",
+        "functions": [
+          "daily_scheduler"
+        ]
+      },
+      {
+        "tool_id": "naver_econ_news_agent__email_dispatcher",
+        "functions": [
+          "email_dispatcher"
+        ]
+      },
+      {
+        "tool_id": "naver_econ_news_agent__fetch_news",
+        "functions": [
+          "fetch_news"
+        ]
+      },
+      {
+        "tool_id": "naver_econ_news_agent__news_summarizer",
+        "functions": [
+          "news_summarizer"
+        ]
+      }
+    ],
+    "enabled": true,
+    "created_at": "2026-06-29T05:02:40.533636+00:00"
+  }
+]

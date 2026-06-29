@@ -19,6 +19,7 @@ export default function Sidebar({ routes }: Props) {
           <NavLink
             key={r.path}
             to={r.path}
+            end
             className={({ isActive }) => `nav-link${isActive ? " active" : ""}`}
           >
             {r.title}

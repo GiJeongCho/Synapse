@@ -24,6 +24,7 @@ _FIELDS = [
     "mcp_tools",
     "project_files",
     "test_result",
+    "graph_structure",
     "created_at",
     "version",
     "mode",
@@ -35,9 +36,13 @@ def _collection() -> str:
 
 
 def ensure_collection() -> None:
-    """Agent Registry 컬렉션이 없으면 생성한다."""
+    """Agent Registry 컬렉션이 없으면 생성하고, 항상 로드 상태를 보장한다."""
     client = get_client()
     if client.has_collection(_collection()):
+        try:
+            client.load_collection(_collection())
+        except Exception:
+            pass
         return
 
     client.create_collection(
@@ -47,6 +52,7 @@ def ensure_collection() -> None:
         id_type="string",
         max_length=256,
     )
+    client.load_collection(_collection())
     log.info("Agent Registry 컬렉션 생성: %s", _collection())
 
 
@@ -68,6 +74,7 @@ def register(record: dict[str, Any]) -> None:
         "mcp_tools": json.dumps(record.get("mcp_tools", []), ensure_ascii=False),
         "project_files": json.dumps(record.get("project_files", {}), ensure_ascii=False),
         "test_result": json.dumps(record.get("test_result", {}), ensure_ascii=False),
+        "graph_structure": json.dumps(record.get("graph_structure", {}), ensure_ascii=False),
         "created_at": record.get("created_at", ""),
         "version": record.get("version", 1),
         "mode": record.get("mode", "solo"),
@@ -103,7 +110,7 @@ def lookup(
         entity = hit.get("entity", {})
         for field in _FIELDS:
             val = entity.get(field)
-            if field in ("agent_spec", "mcp_tools", "project_files", "test_result"):
+            if field in ("agent_spec", "mcp_tools", "project_files", "test_result", "graph_structure"):
                 try:
                     val = json.loads(val) if isinstance(val, str) else val
                 except (json.JSONDecodeError, TypeError):
@@ -112,6 +119,52 @@ def lookup(
         hits.append(entry)
 
     return hits
+
+
+def get(agent_id: str) -> dict[str, Any] | None:
+    """agent_id(Milvus id 또는 agent_id 필드)로 레코드를 조회한다. JSON 필드는 파싱."""
+    ensure_collection()
+    client = get_client()
+
+    results = client.query(
+        collection_name=_collection(),
+        filter=f'id == "{agent_id}"',
+        output_fields=_FIELDS,
+        limit=1,
+    )
+    if not results:
+        results = client.query(
+            collection_name=_collection(),
+            filter=f'agent_id == "{agent_id}"',
+            output_fields=_FIELDS,
+            limit=1,
+        )
+    if not results:
+        return None
+
+    record = results[0]
+    for field in ("agent_spec", "mcp_tools", "project_files", "test_result", "graph_structure"):
+        val = record.get(field)
+        if isinstance(val, str):
+            try:
+                record[field] = json.loads(val)
+            except (json.JSONDecodeError, TypeError):
+                pass
+    return record
+
+
+def delete(agent_id: str) -> bool:
+    """에이전트를 Registry에서 삭제한다. 성공 시 True."""
+    ensure_collection()
+    client = get_client()
+
+    try:
+        client.delete(collection_name=_collection(), ids=[agent_id])
+        log.info("Agent 삭제: %s", agent_id)
+        return True
+    except Exception as exc:
+        log.error("Agent 삭제 실패: %s — %s", agent_id, exc)
+        return False
 
 
 def update_version(agent_id: str, updated_fields: dict[str, Any]) -> None:

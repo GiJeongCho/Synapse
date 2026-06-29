@@ -1,0 +1,8 @@
+{
+  "agent_id": "naver_econ_news_daily",
+  "name": "Daily Scheduler",
+  "description": "Schedules the news fetch-summarize-email workflow to run daily at 9:00 AM KST.",
+  "functions": [
+    "schedule_daily_trigger"
+  ]
+}

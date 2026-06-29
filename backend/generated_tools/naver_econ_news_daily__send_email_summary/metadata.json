@@ -1,0 +1,8 @@
+{
+  "agent_id": "naver_econ_news_daily",
+  "name": "Email Summary Deliverer",
+  "description": "Sends summarized news to recipient email via SMTP with HTML formatting and error handling.",
+  "functions": [
+    "send_email_summary"
+  ]
+}

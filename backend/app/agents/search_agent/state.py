@@ -1,10 +1,17 @@
-"""SearchAgentState — 기획 확정 후 TypedDict 필드를 정의한다(§5)."""
-
+"""SearchAgentState(§5)."""
 from __future__ import annotations
 
-from typing import TypedDict
+import operator
+from typing import Annotated, Any, Optional, TypedDict
 
 
 class SearchAgentState(TypedDict, total=False):
     job_id: str
-    # TODO: query, raw_results, filtered_results, organized, evaluation, iteration ...
+    query: str
+    raw_results: list[dict[str, Any]]
+    filtered_results: list[dict[str, Any]]
+    organized: list[dict[str, Any]]
+    evaluation: dict[str, Any]
+    iteration: int
+    error: Optional[str]
+    messages: Annotated[list[dict[str, Any]], operator.add]

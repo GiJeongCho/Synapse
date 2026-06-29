@@ -1,0 +1,128 @@
+{
+  "schedule_id": "sched_agent-6123d5091441",
+  "agent_id": "agent-6123d5091441",
+  "started_at": "2026-06-26T05:55:29.752464+00:00",
+  "completed_at": "2026-06-26T05:55:31.637191+00:00",
+  "pipeline_status": "partial_failure",
+  "failure_reason": "summarize_news: 도구 실행 중 오류 발생 — OPENAI_API_KEY not set",
+  "results": [
+    {
+      "tool_id": "econ_news_mailer__fetch_econ_news",
+      "function": "fetch_econ_news",
+      "result": {
+        "status": "success",
+        "result": {
+          "status": "success",
+          "content": "[finance.yahoo.com] Love Musk Or Not On July 6, You Will Own SpaceX Stock\n\nhttps://finance.yahoo.com/markets/stocks/articles/love-musk-not-july-6-180940226.html\n\n[finance.yahoo.com] 4 Reasons Netflix Stock Is a Must-Own Now After the Plunge\n\nhttps://finance.yahoo.com/markets/stocks/articles/4-reasons-netflix-stock-must-180743094.html\n\n[finance.yahoo.com] Churchill seizing Pebb Capital’s Streeterville hotel eyed for apartments conversion in $28M foreclosure\n\nhttps://finance.yahoo.com/real-estate/articles/churchill-seizing-pebb-capital-streeterville-181533587.html\n\n[finance.yahoo.com] Qualcomm forecasts $15 billion data center chip sales by 2029, shares soar\n\nhttps://finance.yahoo.com/technology/ai/articles/qualcomm-bets-ai-chips-break-181112616.html\n\n[finance.yahoo.com] Why Prime Day Is Lifting Amazon Stock Amid a Brutal Tech Sector Sell-Off\n\nhttps://finance.yahoo.com/markets/stocks/articles/why-prime-day-lifting-amazon-180302022.html\n\n[www.cnbc.com] UN agency pauses Hormuz ship evacuation plan after first vessel attack under peace deal\nThe pause follows a container ship being struck near the coast of Oman on Thursday, with a U.S. official saying that Iran was responsible for the attack.\nhttps://www.cnbc.com/2026/06/26/strait-of-hormuz-vessel-attack-evacuation-pauses-iran-united-states-peace-deal-negotiation-.html\n\n[www.cnbc.com] Core inflation rate hit 3.4% in May, highest since October 2023, Fed’s preferred gauge shows\nThe personal consumption expenditures price index was expected to show a 4.1% annual increase.\nhttps://www.cnbc.com/2026/06/25/pce-inflation-report-may-2026-.html\n\n[www.cnbc.com] Trump pledges rapid U.S. response for Venezuela after historic earthquakes kill hundreds\nThe swift U.S. offer of assistance reflects a degree of diplomatic realignment between the Trump administration and the Venezuelan interim government.\nhttps://www.cnbc.com/2026/06/25/venezuela-earthquakes-casualties-trump-pledges-support-aids-oil-.html\n\n[www.cnbc.com] Iran warns ships it's 'unacceptable and dangerous' to transit the Strait of Hormuz without their approval\nThe stern warning underscores Tehran's resolve to retain control over the Strait of Hormuz and to resist transits that bypass its authorization.\nhttps://www.cnbc.com/2026/06/25/iran-navy-shipping-recovery-strait-of-hormuz-unauthorized-routes-us-fragile-mou-.html\n\n[www.cnbc.com] Factory job cuts in June neared financial crisis and Covid levels, S&P says\nThough the firm's manufacturing index ran better than expected for June, it came largely from an inventory rebuild and despite sharp job cuts.\nhttps://www.cnbc.com/2026/06/23/factory-job-cuts-reported-around-financial-crisis-and-covid-levels-for-june-sp-says.html",
+          "articles": [
+            {
+              "title": "Love Musk Or Not On July 6, You Will Own SpaceX Stock",
+              "summary": "",
+              "link": "https://finance.yahoo.com/markets/stocks/articles/love-musk-not-july-6-180940226.html",
+              "source": "finance.yahoo.com"
+            },
+            {
+              "title": "4 Reasons Netflix Stock Is a Must-Own Now After the Plunge",
+              "summary": "",
+              "link": "https://finance.yahoo.com/markets/stocks/articles/4-reasons-netflix-stock-must-180743094.html",
+              "source": "finance.yahoo.com"
+            },
+            {
+              "title": "Churchill seizing Pebb Capital’s Streeterville hotel eyed for apartments conversion in $28M foreclosure",
+              "summary": "",
+              "link": "https://finance.yahoo.com/real-estate/articles/churchill-seizing-pebb-capital-streeterville-181533587.html",
+              "source": "finance.yahoo.com"
+            },
+            {
+              "title": "Qualcomm forecasts $15 billion data center chip sales by 2029, shares soar",
+              "summary": "",
+              "link": "https://finance.yahoo.com/technology/ai/articles/qualcomm-bets-ai-chips-break-181112616.html",
+              "source": "finance.yahoo.com"
+            },
+            {
+              "title": "Why Prime Day Is Lifting Amazon Stock Amid a Brutal Tech Sector Sell-Off",
+              "summary": "",
+              "link": "https://finance.yahoo.com/markets/stocks/articles/why-prime-day-lifting-amazon-180302022.html",
+              "source": "finance.yahoo.com"
+            },
+            {
+              "title": "UN agency pauses Hormuz ship evacuation plan after first vessel attack under peace deal",
+              "summary": "The pause follows a container ship being struck near the coast of Oman on Thursday, with a U.S. official saying that Iran was responsible for the attack.",
+              "link": "https://www.cnbc.com/2026/06/26/strait-of-hormuz-vessel-attack-evacuation-pauses-iran-united-states-peace-deal-negotiation-.html",
+              "source": "www.cnbc.com"
+            },
+            {
+              "title": "Core inflation rate hit 3.4% in May, highest since October 2023, Fed’s preferred gauge shows",
+              "summary": "The personal consumption expenditures price index was expected to show a 4.1% annual increase.",
+              "link": "https://www.cnbc.com/2026/06/25/pce-inflation-report-may-2026-.html",
+              "source": "www.cnbc.com"
+            },
+            {
+              "title": "Trump pledges rapid U.S. response for Venezuela after historic earthquakes kill hundreds",
+              "summary": "The swift U.S. offer of assistance reflects a degree of diplomatic realignment between the Trump administration and the Venezuelan interim government.",
+              "link": "https://www.cnbc.com/2026/06/25/venezuela-earthquakes-casualties-trump-pledges-support-aids-oil-.html",
+              "source": "www.cnbc.com"
+            },
+            {
+              "title": "Iran warns ships it's 'unacceptable and dangerous' to transit the Strait of Hormuz without their approval",
+              "summary": "The stern warning underscores Tehran's resolve to retain control over the Strait of Hormuz and to resist transits that bypass its authorization.",
+              "link": "https://www.cnbc.com/2026/06/25/iran-navy-shipping-recovery-strait-of-hormuz-unauthorized-routes-us-fragile-mou-.html",
+              "source": "www.cnbc.com"
+            },
+            {
+              "title": "Factory job cuts in June neared financial crisis and Covid levels, S&P says",
+              "summary": "Though the firm's manufacturing index ran better than expected for June, it came largely from an inventory rebuild and despite sharp job cuts.",
+              "link": "https://www.cnbc.com/2026/06/23/factory-job-cuts-reported-around-financial-crisis-and-covid-levels-for-june-sp-says.html",
+              "source": "www.cnbc.com"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "tool_id": "econ_news_mailer__summarize_news",
+      "function": "summarize_news",
+      "result": {
+        "status": "error",
+        "result": {
+          "status": "error",
+          "summary": "",
+          "message": "OPENAI_API_KEY not set"
+        }
+      },
+      "reason": "도구 실행 중 오류 발생 — OPENAI_API_KEY not set"
+    },
+    {
+      "tool_id": "econ_news_mailer__send_email_news",
+      "function": "send_email_news",
+      "result": {
+        "status": "skipped"
+      },
+      "reason": "이전 단계 실패로 건너뜀"
+    },
+    {
+      "tool_id": "econ_news_mailer__send_news_email",
+      "function": "send_news_email",
+      "result": {
+        "status": "skipped"
+      },
+      "reason": "이전 단계 실패로 건너뜀"
+    },
+    {
+      "tool_id": "econ_news_mailer__schedule_daily_9am",
+      "function": "schedule_daily_9am",
+      "result": {
+        "status": "skipped"
+      },
+      "reason": "스케줄 설정은 스케줄 페이지에서 관리"
+    },
+    {
+      "tool_id": "econ_news_mailer__schedule_daily_job",
+      "function": "schedule_daily_job",
+      "result": {
+        "status": "skipped"
+      },
+      "reason": "스케줄 설정은 스케줄 페이지에서 관리"
+    }
+  ]
+}
