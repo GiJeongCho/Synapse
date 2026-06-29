@@ -14,6 +14,7 @@
 | 에이전트 / Supervisor 워크플로우 | **폴더 골격만** — 기획 확정 후 구현 |
 | React UI | **라우팅 셸 + placeholder** — 화면 기획 전 |
 
+**Meta-Agent 아키텍처**: [`docs/agent.md`](docs/agent.md)  
 **폴더 구조 상세**: [`docs/project-structure.md`](docs/project-structure.md)  
 **에이전트 코딩 표준**: [`docs/agent-development-standards-v2.md`](docs/agent-development-standards-v2.md)
 
@@ -35,6 +36,84 @@ Synapse/
 ├── frontend/src/         # React (pages · components · api · hooks)
 └── docs/
 ```
+
+---
+
+## 에이전트 시스템
+
+Synapse의 핵심은 **요구사항을 던지면 그에 맞는 하위 에이전트(Child Agent)를 스스로 생성·검증·배포하는 Meta-Agent**입니다. 정해진 에이전트를 실행만 하는 게 아니라, **에이전트를 만드는 에이전트**라는 점이 차별점입니다.
+
+> 상세 설계·다이어그램·State 초안은 [`docs/agent.md`](docs/agent.md) 참고.
+
+### 1. 쌍방 Supervisor 진화 루프
+
+두 Supervisor가 서로의 산출물과 평가 기준을 평가·수정하며 합의에 도달합니다. 단순 재시도(retry)와 달리 **전략과 평가 기준이 동시에 진화**합니다.
+
+| Supervisor | 역할 |
+|------------|------|
+| **A (Builder)** | 에이전트를 생성하고, 전략을 세우고, B의 평가를 역평가(기준 수정 제안) |
+| **B (Critic)** | A의 결과를 평가하고, 개선안을 제시하고, 평가 기준을 관리 |
+
+```
+Supervisor-A (Builder)          Supervisor-B (Critic)
+  에이전트 생성 ──────────→
+                               ←── 평가 + 개선안
+  개선안 반영 + 재생성
+  + "B의 기준이 너무 엄격" ──→
+                               ←── 기준 수정 + 재평가
+  ... 합의할 때까지 반복 (max 5라운드)
+```
+
+| | 단순 재시도 | 쌍방 진화 |
+|---|---|---|
+| 뭘 바꾸나 | 같은 전략 반복 | **전략 자체**를 변경 |
+| 평가 기준 | 고정 | 평가 기준도 **수정 대상** |
+| 방향 | 일방향 | **쌍방향** (서로 평가·수정) |
+
+### 2. 에이전트 생성 파이프라인 (4개 노드)
+
+Supervisor-A가 호출하는 생성 파이프라인은 4단계로 구성됩니다.
+
+```
+[1] Requirements Analyzer → [2] Tool Retriever → [3] Environment Provisioner → [4] Evaluator
+       요구사항 분석              MCP 도구 검색            실행 환경 구성             샌드박스 테스트
+```
+
+| 노드 | 역할 | 핵심 연동 |
+|------|------|-----------|
+| **Requirements Analyzer** | 요구사항 → 에이전트 페르소나·목표·제약 정의 | — |
+| **Tool & Context Retriever** | 필요한 MCP 서버/API 탐색 | **Knowledge Graph(Neo4j) + Vector DB** RAG |
+| **Environment Provisioner** | 실행 가능한 프로젝트 패키징 | **uv**(`pyproject.toml`) + **Docker**(`Dockerfile`) |
+| **Evaluator** | 더미 입력으로 도구 호출 검증 + Self-Correction | 샌드박스 (실패 시 최대 3회 재시도) |
+
+- **MCP**를 표준 연결 규격으로 사용해 각 에이전트가 외부 인프라·데이터와 소통합니다.
+- 실패 정책: 파이프라인 내 `MAX_ITERATION = 3`, 라운드 간 `MAX_ROUNDS = 5`. 한도 초과는 에러가 아니라 **현재까지 최선의 결과로 graceful 종료**.
+
+### 3. 리서치 도메인 에이전트
+
+Meta-Agent와 별개로, 리서치 워크플로우는 Supervisor가 아래 워커 에이전트들을 조율합니다 (`app/agents/`).
+
+| 에이전트 | 역할 | 예상 아키텍처 |
+|----------|------|---------------|
+| `search_agent` | 벡터/하이브리드 검색 | search → filter → organize → evaluate (루프) |
+| `crawl_agent` | 웹·외부 소스 수집 | fetch → extract → normalize (선형) |
+| `graph_agent` | Neo4j 관계 탐색 | expand → summarize (선형) |
+| `analyst_agent` | 수집 자료 종합 분석 | analyze → critique (루프) |
+| `writer_agent` | 최종 리포트 작성 | planner → drafting → evaluation (루프) |
+
+### 4. 구현 표준 (요약)
+
+모든 에이전트는 [`docs/agent-development-standards-v2.md`](docs/agent-development-standards-v2.md)의 **7대 공통 규약**을 따릅니다.
+
+1. 그래프는 `StateGraph` → `compile()`, 팩토리 함수 `create_<agent>_workflow()`
+2. State는 `TypedDict`(+`job_id`), 노드는 **변경된 키만** 반환
+3. 노드는 `async def node(state, config: RunnableConfig)` 시그니처
+4. 프롬프트는 `ChatPromptTemplate`로 `prompts.py`에 분리
+5. LLM은 `get_llm_for_agent()` → `await llm.ainvoke(messages)`
+6. LLM JSON 응답은 `extract_json_from_llm_response()`로 파싱
+7. 모든 I/O는 `async`/`await`, 장기 작업은 `check_if_canceled()`로 취소 확인
+
+> 현재 `agents/` · `workflows/`는 **폴더 골격 단계**이며, 위 설계를 기준으로 기획 확정 후 구현합니다.
 
 ---
 
