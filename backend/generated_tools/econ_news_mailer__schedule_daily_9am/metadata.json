@@ -1,8 +1,0 @@
-{
-  "agent_id": "econ_news_mailer",
-  "name": "Schedule Daily 9 AM",
-  "description": "Return cron expression for daily 9 AM execution.",
-  "functions": [
-    "schedule_daily_9am"
-  ]
-}

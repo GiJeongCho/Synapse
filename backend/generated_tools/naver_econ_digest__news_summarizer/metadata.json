@@ -1,8 +1,0 @@
-{
-  "agent_id": "naver_econ_digest",
-  "name": "News Summarizer",
-  "description": "Summarizes fetched articles into concise Korean digest using Claude API with fallback to text extraction.",
-  "functions": [
-    "news_summarizer"
-  ]
-}

@@ -1,8 +1,0 @@
-{
-  "agent_id": "econ_news_daily",
-  "name": "Fetch Economic News",
-  "description": "Fetch latest economic news from multiple RSS feeds with fallback sources.",
-  "functions": [
-    "fetch_econ_news"
-  ]
-}

@@ -1,8 +1,0 @@
-{
-  "agent_id": "bloomberg_daily_summarizer",
-  "name": "Send Email Summary",
-  "description": "Send summarized Bloomberg news via SMTP with TLS authentication to recipient.",
-  "functions": [
-    "send_email_summary"
-  ]
-}

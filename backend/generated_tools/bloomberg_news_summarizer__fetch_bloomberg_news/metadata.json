@@ -1,8 +1,0 @@
-{
-  "agent_id": "bloomberg_news_summarizer",
-  "name": "Fetch Bloomberg News",
-  "description": "Fetch latest Bloomberg news from RSS feed with exponential backoff and deduplication via content hash.",
-  "functions": [
-    "fetch_bloomberg_news"
-  ]
-}

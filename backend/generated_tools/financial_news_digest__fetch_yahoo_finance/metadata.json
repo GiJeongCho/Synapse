@@ -1,8 +1,0 @@
-{
-  "agent_id": "financial_news_digest",
-  "name": "Fetch Yahoo Finance News",
-  "description": "Scrape financial news headlines and content from Yahoo Finance with robots.txt validation and rate limiting.",
-  "functions": [
-    "fetch_yahoo_finance"
-  ]
-}

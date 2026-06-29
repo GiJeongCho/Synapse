@@ -1,8 +1,0 @@
-{
-  "agent_id": "econ_news_daily_emailer",
-  "name": "Delivery Logger",
-  "description": "Logs delivery status, timestamps, and execution details to local audit file.",
-  "functions": [
-    "log_delivery"
-  ]
-}

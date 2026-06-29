@@ -1,8 +1,0 @@
-{
-  "agent_id": "naver_econ_digest",
-  "name": "Email Deliverer",
-  "description": "Sends summarized digest to wzxcv123@naver.com via SMTP with HTML formatting and timestamp.",
-  "functions": [
-    "email_deliverer"
-  ]
-}

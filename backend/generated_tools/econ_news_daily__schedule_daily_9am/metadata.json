@@ -1,8 +1,0 @@
-{
-  "agent_id": "econ_news_daily",
-  "name": "Schedule Daily 9 AM Execution",
-  "description": "Schedule agent to run daily at 9 AM KST (Asia/Seoul timezone).",
-  "functions": [
-    "schedule_daily_9am"
-  ]
-}

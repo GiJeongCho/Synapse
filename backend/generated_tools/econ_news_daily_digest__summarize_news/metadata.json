@@ -1,8 +1,0 @@
-{
-  "agent_id": "econ_news_daily_digest",
-  "name": "News Summarizer",
-  "description": "Summarize fetched economic news using Claude LLM into concise, easy-to-understand format.",
-  "functions": [
-    "summarize_news"
-  ]
-}

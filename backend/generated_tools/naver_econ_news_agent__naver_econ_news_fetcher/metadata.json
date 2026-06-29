@@ -1,8 +1,0 @@
-{
-  "agent_id": "naver_econ_news_agent",
-  "name": "Naver Economic News Fetcher",
-  "description": "Fetch latest economic news from Naver News RSS feed with retry logic and robots.txt compliance.",
-  "functions": [
-    "naver_econ_news_fetcher"
-  ]
-}

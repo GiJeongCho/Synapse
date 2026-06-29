@@ -1,8 +1,0 @@
-{
-  "agent_id": "finance_news_digest",
-  "name": "Deduplicate Articles",
-  "description": "Remove duplicate articles using SQLite-based persistent storage to track seen article URLs.",
-  "functions": [
-    "deduplicate_articles"
-  ]
-}

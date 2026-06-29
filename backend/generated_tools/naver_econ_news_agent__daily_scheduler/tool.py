@@ -1,86 +1,72 @@
 import logging
-from datetime import datetime, time
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
-def daily_scheduler(start_hour=9, start_minute=0, interval_minutes=10, end_hour=18, **kwargs):
+def daily_scheduler(**kwargs):
     """
-    Generate cron schedule for daily economic news workflow.
-    Triggers at 9 AM, then every 10 minutes until 6 PM (18:00).
-    Returns cron expression and schedule metadata.
+    Return cron expression for scheduling the workflow.
+    Runs every 10 minutes starting at 9 AM daily (KST timezone).
     
-    Schedule breakdown:
-    - Start: 09:00 (9 AM)
-    - Interval: 10 minutes
-    - End: 18:00 (6 PM)
-    - Triggers: 09:00, 09:10, 09:20, ..., 17:50
+    This tool returns the cron configuration that should be used with APScheduler.
+    The agent runtime will use this to set up the actual scheduled job.
     """
-    
     try:
-        logger.info(f"Generating daily schedule: start {start_hour}:{start_minute:02d}, "
-                   f"interval {interval_minutes} min, end {end_hour}:00")
-        
-        # Generate list of trigger times
-        trigger_times = []
-        current_hour = start_hour
-        current_minute = start_minute
-        
-        while current_hour < end_hour or (current_hour == end_hour and current_minute == 0):
-            trigger_times.append(f"{current_hour:02d}:{current_minute:02d}")
-            
-            current_minute += interval_minutes
-            if current_minute >= 60:
-                current_hour += current_minute // 60
-                current_minute = current_minute % 60
-            
-            if current_hour >= end_hour:
-                break
-        
-        # Build cron expression for APScheduler
+        # Cron expression: every 10 minutes from 9 AM to 11:59 PM
         # Format: minute hour day month day_of_week
-        # For multiple times, we need multiple cron entries or use a list
-        minutes = [str(t.split(":")[1]) for t in trigger_times]
-        hours = [str(t.split(":")[0]) for t in trigger_times]
+        # */10 = every 10 minutes
+        # 9-23 = 9 AM to 11 PM (24-hour format)
+        # * = every day
+        # * = every month
+        # * = every day of week
         
-        # Create cron-like expression (APScheduler format)
-        cron_expression = f"cron(minute='{','.join(minutes)}' hour='{','.join(hours)}' day_of_week='mon-fri')"
+        cron_expression = '*/10 9-23 * * *'
+        timezone = 'Asia/Seoul'  # KST
         
-        schedule_config = {
-            "status": "success",
-            "schedule_type": "daily_recurring",
-            "start_time": f"{start_hour:02d}:{start_minute:02d}",
-            "end_time": f"{end_hour:02d}:00",
-            "interval_minutes": interval_minutes,
-            "trigger_times": trigger_times,
-            "total_triggers_per_day": len(trigger_times),
-            "cron_expression": cron_expression,
-            "apscheduler_config": {
-                "trigger": "cron",
-                "hour": ",".join(hours),
-                "minute": ",".join(minutes),
-                "day_of_week": "mon-fri",
-                "timezone": "Asia/Seoul"
-            },
-            "retry_config": {
-                "max_retries": 3,
-                "backoff_factor": 2,
-                "backoff_max": 300
-            },
-            "generated_at": datetime.now().isoformat(),
-            "description": f"Fetch and email economic news daily from {start_hour:02d}:{start_minute:02d} "
-                          f"every {interval_minutes} minutes until {end_hour}:00 (Seoul time)"
+        logger.info(f"Scheduler configured: {cron_expression} (timezone: {timezone})")
+        
+        return {
+            'status': 'success',
+            'cron_expression': cron_expression,
+            'timezone': timezone,
+            'description': 'Every 10 minutes from 9 AM to 11:59 PM daily (KST)',
+            'next_run': _calculate_next_run()
         }
-        
-        logger.info(f"Schedule generated: {len(trigger_times)} triggers per day")
-        logger.info(f"Trigger times: {', '.join(trigger_times[:5])}... (showing first 5)")
-        
-        return schedule_config
     
     except Exception as e:
-        error_msg = f"Schedule generation failed: {str(e)}"
-        logger.error(error_msg)
+        logger.error(f"Scheduler configuration error: {str(e)}")
         return {
-            "status": "error",
-            "message": error_msg,
-            "generated_at": datetime.now().isoformat()
+            'status': 'error',
+            'message': f'Scheduler configuration failed: {str(e)}'
         }
+
+def _calculate_next_run():
+    """
+    Calculate the next scheduled run time.
+    """
+    try:
+        from datetime import datetime, timedelta
+        import pytz
+        
+        kst = pytz.timezone('Asia/Seoul')
+        now = datetime.now(kst)
+        
+        # If before 9 AM, next run is today at 9 AM
+        if now.hour < 9:
+            next_run = now.replace(hour=9, minute=0, second=0, microsecond=0)
+        # If after 11:59 PM, next run is tomorrow at 9 AM
+        elif now.hour >= 23:
+            next_run = (now + timedelta(days=1)).replace(hour=9, minute=0, second=0, microsecond=0)
+        # Otherwise, next run is in 10 minutes (rounded to nearest 10-min interval)
+        else:
+            minutes = ((now.minute // 10) + 1) * 10
+            if minutes >= 60:
+                next_run = (now + timedelta(hours=1)).replace(minute=0, second=0, microsecond=0)
+            else:
+                next_run = now.replace(minute=minutes, second=0, microsecond=0)
+        
+        return next_run.strftime('%Y-%m-%d %H:%M:%S %Z')
+    except Exception as e:
+        logger.error(f"Next run calculation error: {str(e)}")
+        return 'Unable to calculate'

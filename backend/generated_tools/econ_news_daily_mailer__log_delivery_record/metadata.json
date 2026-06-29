@@ -1,8 +1,0 @@
-{
-  "agent_id": "econ_news_daily_mailer",
-  "name": "Log Delivery Record",
-  "description": "Persists delivery status and execution logs to file for audit trail and monitoring.",
-  "functions": [
-    "log_delivery_record"
-  ]
-}

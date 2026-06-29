@@ -1,8 +1,0 @@
-{
-  "agent_id": "econ_news_digest",
-  "name": "Summarize Economic News",
-  "description": "Summarize fetched economic news using Claude API or simple aggregation.",
-  "functions": [
-    "summarize_news"
-  ]
-}

@@ -1,8 +1,0 @@
-{
-  "agent_id": "financial_news_digest",
-  "name": "Deduplication Checker",
-  "description": "Checks against previous digests to avoid duplicate news items using file-based memory.",
-  "functions": [
-    "check_deduplication"
-  ]
-}

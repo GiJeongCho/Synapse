@@ -1,9 +1,0 @@
-{
-  "agent_id": "naver_econ_digest",
-  "name": "Daily Scheduler",
-  "description": "Schedules the workflow to execute daily at 9:10 AM KST with exponential backoff retry logic (max 3 attempts).",
-  "functions": [
-    "daily_scheduler",
-    "_calculate_next_run"
-  ]
-}

@@ -1,8 +1,0 @@
-{
-  "agent_id": "bloomberg_news_summarizer",
-  "name": "Send Email Digest",
-  "description": "Send the news summary via authenticated SMTP to wzxcv123@naver.com.",
-  "functions": [
-    "send_email_digest"
-  ]
-}

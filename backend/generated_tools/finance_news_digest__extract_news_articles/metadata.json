@@ -1,8 +1,0 @@
-{
-  "agent_id": "finance_news_digest",
-  "name": "News Article Extractor",
-  "description": "Extracts article titles, links, and snippets from Yahoo Finance HTML content.",
-  "functions": [
-    "extract_news_articles"
-  ]
-}

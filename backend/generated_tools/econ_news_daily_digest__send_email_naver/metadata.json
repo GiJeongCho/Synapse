@@ -1,8 +1,0 @@
-{
-  "agent_id": "econ_news_daily_digest",
-  "name": "Naver Email Sender",
-  "description": "Send summarized news to wzxcv123@naver.com with SMTP retry logic (3 attempts, exponential backoff).",
-  "functions": [
-    "send_email_naver"
-  ]
-}

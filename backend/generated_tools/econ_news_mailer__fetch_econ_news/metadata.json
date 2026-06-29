@@ -1,8 +1,0 @@
-{
-  "agent_id": "econ_news_mailer",
-  "name": "Fetch Economic News",
-  "description": "Fetch latest economic news from multiple RSS/scrape sources with fallback strategy.",
-  "functions": [
-    "fetch_econ_news"
-  ]
-}

@@ -1,8 +1,0 @@
-{
-  "agent_id": "naver_econ_news_daily",
-  "name": "Economic News Summarizer",
-  "description": "Summarize fetched economic news articles using Claude Haiku, producing concise bullet-point summary.",
-  "functions": [
-    "summarize_econ_news"
-  ]
-}

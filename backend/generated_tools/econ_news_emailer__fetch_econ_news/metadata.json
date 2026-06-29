@@ -1,8 +1,0 @@
-{
-  "agent_id": "econ_news_emailer",
-  "name": "Fetch Economic News",
-  "description": "Fetch latest economic news from public RSS feeds (Yahoo Finance, CNBC, Reuters).",
-  "functions": [
-    "fetch_econ_news"
-  ]
-}

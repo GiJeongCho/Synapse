@@ -1,8 +1,0 @@
-{
-  "agent_id": "bloomberg_daily_summarizer",
-  "name": "Summarize Articles",
-  "description": "Extract and summarize article content using extractive summarization (select key sentences).",
-  "functions": [
-    "summarize_articles"
-  ]
-}
