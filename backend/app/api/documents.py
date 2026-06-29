@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 import uuid
 from pathlib import Path
+import re
 
 from fastapi import APIRouter, File, HTTPException, UploadFile
 from pydantic import BaseModel
@@ -66,8 +67,12 @@ async def upload_document(file: UploadFile = File(...)):
 
 def _clean_text(text: str) -> str:
     """PDF 추출 시 섞인 정규식 메타문자 제거."""
-    text = text.replace(r'\s*', '').replace(r'\d+', '').replace(r'\n', '\n')
-    return text
+    text = re.sub(r'\\s\*', '', text)
+    text = re.sub(r'\\d\+', '', text)
+    text = re.sub(r'\\n', '\n', text)
+    text = re.sub(r'\\s', ' ', text)
+    return text.strip()
+
 
 def _extract_text(path: Path, ext: str) -> tuple[str, str]:
     if ext == ".pdf":

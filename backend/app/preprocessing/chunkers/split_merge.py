@@ -8,6 +8,7 @@ Pass 2: greedily merge adjacent small pieces back up to the target ceiling.
 from __future__ import annotations
 
 import tiktoken
+import re
 
 from app.config import settings
 
@@ -65,6 +66,8 @@ def _recursive_split_pass(text: str, target: int, separators: list[str]) -> list
     return [text[i:i + chars_per_chunk].strip() for i in range(0, len(text), chars_per_chunk) if text[i:i + chars_per_chunk].strip()]
 
 
+_ARTICLE_PATTERN = re.compile(r"^제\s*\d+\s*조", re.MULTILINE)
+
 def _greedy_merge_pass(pieces: list[str], ceiling: int) -> list[str]:
     """Pass 2 — merge adjacent small pieces up to *ceiling* tokens."""
     if not pieces:
@@ -74,6 +77,10 @@ def _greedy_merge_pass(pieces: list[str], ceiling: int) -> list[str]:
     current = pieces[0]
 
     for piece in pieces[1:]:
+        if _ARTICLE_PATTERN.match(piece.lstrip()):
+            merged.append(current.strip())
+            current = piece
+            continue
         candidate = current + "\n\n" + piece
         if _token_len(candidate) <= ceiling:
             current = candidate

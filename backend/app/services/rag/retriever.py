@@ -13,6 +13,7 @@ from app.core.config import settings
 from app.core.logging import logger
 from app.services.rag.vector_store import vector_store
 from app.services.rag.bm25_store import bm25_store
+from app.services.rag.query_rewriter import rewrite_query
 
 log = logger(__name__)
 
@@ -37,11 +38,14 @@ def hybrid_retrieve_sync(
 def _rrf_score(rank: int, k: int = 60) -> float:
     """Reciprocal Rank Fusion 점수 계산."""
     return 1.0 / (k + rank)
+
+    
 async def hybrid_retrieve(
     query: str,
     top_k: int | None = None,
     filter_expr: str | None = None,
 ) -> list[dict]:
+    query = await rewrite_query(query)
     k = top_k or settings.vector_search_top_k
 
     # 1. 벡터 검색
