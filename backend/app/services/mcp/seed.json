@@ -1,0 +1,112 @@
+[
+  {
+    "tool_id": "mcp-filesystem",
+    "name": "Filesystem MCP",
+    "description": "Read, write, list, and manage files and directories on the local filesystem. Supports operations like read_file, write_file, list_directory, create_directory, move_file, search_files, and get_file_info.",
+    "uri": "npx -y @modelcontextprotocol/server-filesystem",
+    "capabilities": ["file_read", "file_write", "directory_listing", "file_search"],
+    "schema": {
+      "tools": ["read_file", "write_file", "list_directory", "create_directory", "move_file", "search_files"]
+    },
+    "category": "filesystem"
+  },
+  {
+    "tool_id": "mcp-web-search",
+    "name": "Brave Search MCP",
+    "description": "Search the web using Brave Search API. Returns relevant web pages, snippets, and URLs for a given query. Supports both web search and local search.",
+    "uri": "npx -y @modelcontextprotocol/server-brave-search",
+    "capabilities": ["web_search", "local_search"],
+    "schema": {
+      "tools": ["brave_web_search", "brave_local_search"]
+    },
+    "category": "search"
+  },
+  {
+    "tool_id": "mcp-fetch",
+    "name": "Fetch MCP",
+    "description": "Fetch and extract content from URLs. Converts web pages to markdown or plain text for processing. Supports HTTP GET requests with customizable headers.",
+    "uri": "npx -y @modelcontextprotocol/server-fetch",
+    "capabilities": ["url_fetch", "web_scraping", "content_extraction"],
+    "schema": {
+      "tools": ["fetch"]
+    },
+    "category": "web"
+  },
+  {
+    "tool_id": "mcp-github",
+    "name": "GitHub MCP",
+    "description": "Interact with GitHub repositories and issues. Create repos, manage files, handle issues and pull requests, search code, and manage branches.",
+    "uri": "npx -y @modelcontextprotocol/server-github",
+    "capabilities": ["repo_management", "issue_tracking", "code_search", "pr_management"],
+    "schema": {
+      "tools": ["create_repository", "search_repositories", "create_issue", "list_issues", "create_pull_request", "search_code"]
+    },
+    "category": "dev_tools"
+  },
+  {
+    "tool_id": "mcp-postgres",
+    "name": "PostgreSQL MCP",
+    "description": "Connect to and query PostgreSQL databases. Execute SQL queries, list tables, describe schemas, and perform database operations.",
+    "uri": "npx -y @modelcontextprotocol/server-postgres",
+    "capabilities": ["sql_query", "schema_inspection", "data_retrieval"],
+    "schema": {
+      "tools": ["query"]
+    },
+    "category": "database"
+  },
+  {
+    "tool_id": "mcp-sqlite",
+    "name": "SQLite MCP",
+    "description": "Interact with SQLite databases. Execute SQL queries, create tables, insert data, and manage local database files.",
+    "uri": "npx -y @modelcontextprotocol/server-sqlite",
+    "capabilities": ["sql_query", "schema_inspection", "data_retrieval", "local_database"],
+    "schema": {
+      "tools": ["read_query", "write_query", "create_table", "list_tables", "describe_table"]
+    },
+    "category": "database"
+  },
+  {
+    "tool_id": "mcp-memory",
+    "name": "Memory MCP",
+    "description": "Persistent memory storage using a knowledge graph. Store and retrieve entities, relations, and observations across sessions.",
+    "uri": "npx -y @modelcontextprotocol/server-memory",
+    "capabilities": ["knowledge_graph", "entity_storage", "relation_management", "persistent_memory"],
+    "schema": {
+      "tools": ["create_entities", "create_relations", "add_observations", "search_nodes", "open_nodes"]
+    },
+    "category": "knowledge"
+  },
+  {
+    "tool_id": "mcp-puppeteer",
+    "name": "Puppeteer MCP",
+    "description": "Browser automation using Puppeteer. Navigate web pages, take screenshots, click elements, fill forms, and execute JavaScript in a headless browser.",
+    "uri": "npx -y @modelcontextprotocol/server-puppeteer",
+    "capabilities": ["browser_automation", "web_scraping", "screenshot", "form_interaction"],
+    "schema": {
+      "tools": ["puppeteer_navigate", "puppeteer_screenshot", "puppeteer_click", "puppeteer_fill", "puppeteer_evaluate"]
+    },
+    "category": "automation"
+  },
+  {
+    "tool_id": "mcp-slack",
+    "name": "Slack MCP",
+    "description": "Interact with Slack workspaces. Send messages, read channels, manage conversations, and search message history.",
+    "uri": "npx -y @modelcontextprotocol/server-slack",
+    "capabilities": ["messaging", "channel_management", "message_search"],
+    "schema": {
+      "tools": ["send_message", "list_channels", "get_channel_history", "search_messages"]
+    },
+    "category": "communication"
+  },
+  {
+    "tool_id": "mcp-calculator",
+    "name": "Calculator MCP",
+    "description": "Perform mathematical calculations. Supports arithmetic, scientific functions, unit conversions, and expression evaluation.",
+    "uri": "npx -y @cursor/calculator-mcp",
+    "capabilities": ["arithmetic", "scientific_math", "unit_conversion", "expression_eval"],
+    "schema": {
+      "tools": ["calculate", "convert_units"]
+    },
+    "category": "utility"
+  }
+]
