@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import hashlib
 import os
+import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -45,6 +46,18 @@ class PipelineResult:
 def _chunk_id(source: str, idx: int) -> str:
     h = hashlib.md5(source.encode()).hexdigest()[:8]
     return f"chunk_{h}_{idx:04d}"
+
+
+_ARTICLE_RE = re.compile(r'제\s*(\d+)\s*조\s*[\(（]?([^\)\n）]{0,20})')
+
+def _extract_article_info(chunk_text: str) -> dict | None:
+    """법률 청크의 첫 300자에서 조문 번호와 제목을 추출한다."""
+    m = _ARTICLE_RE.search(chunk_text[:300])
+    if m:
+        article_no = f"제{m.group(1)}조"
+        title = m.group(2).strip().rstrip("）)") if m.group(2) else None
+        return {"article_no": article_no, "title": title}
+    return None
 
 
 _SECTION_PATTERNS = {
@@ -135,6 +148,7 @@ async def run_pipeline(
 
     # --- 4. Score importance for each chunk ---
     processed: list[ProcessedChunk] = []
+    article_map: list[dict] = []
     last_section = None
     for i, chunk_text in enumerate(best_chunks):
         section = _detect_section(chunk_text, doc_type.value)
@@ -150,6 +164,13 @@ async def run_pipeline(
         )
         cid = _chunk_id(source, i)
         per_chunk_metrics = compute_metrics([chunk_text], text, compute_rc=False)
+
+        article_info = _extract_article_info(chunk_text) if doc_type == DocType.LAW else None
+        article_map.append({
+            "chunk_id": cid,
+            "article_no": article_info["article_no"] if article_info else None,
+            "title": article_info["title"] if article_info else None,
+        })
 
         processed.append(ProcessedChunk(
             chunk_id=cid,
@@ -189,6 +210,7 @@ async def run_pipeline(
         doc_type=doc_type.value,
         chunk_ids=chunk_ids,
         sections=[p.section or "" for p in processed],
+        article_map=article_map,
     )
 
     return PipelineResult(

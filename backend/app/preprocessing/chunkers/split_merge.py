@@ -44,7 +44,9 @@ def _recursive_split_pass(text: str, target: int, separators: list[str]) -> list
         pieces: list[str] = []
         current = ""
         for part in parts:
-            candidate = (current + sep + part) if current else part
+            is_regex_sep = sep.startswith("\\") or sep.startswith(r"\n")
+            joiner = "\n" if is_regex_sep else sep
+            candidate = (current + joiner + part) if current else part
             if _token_len(candidate) <= target:
                 current = candidate
             else:

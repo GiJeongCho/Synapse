@@ -51,6 +51,7 @@ class GraphStore:
         doc_type: str,
         chunk_ids: list[str],
         sections: list[str],
+        article_map: list[dict],
     ) -> None:
         """Document → Chunk (HAS_CHUNK), Chunk → Chunk (NEXT_CHUNK) 관계를 Neo4j에 저장."""
         driver = self._get_driver()
@@ -89,6 +90,41 @@ class GraphStore:
                     next_id=chunk_ids[i + 1]
                 )
 
+            # 4. Article 노드 생성 + HAS_ARTICLE, HAS_CHUNK 관계 (법률 문서 전용)
+            prev_article_no = None
+            for entry in article_map:
+                article_no = entry.get("article_no")
+                if not article_no:
+                    continue
+                session.run(
+                    """
+                    MERGE (a:Article {source: $source, article_no: $article_no})
+                    SET a.title = $title
+                    WITH a
+                    MATCH (d:Document {source: $source})
+                    MERGE (d)-[:HAS_ARTICLE]->(a)
+                    WITH a
+                    MATCH (c:Chunk {id: $chunk_id})
+                    MERGE (a)-[:HAS_CHUNK]->(c)
+                    """,
+                    source=source,
+                    article_no=article_no,
+                    title=entry.get("title") or "",
+                    chunk_id=entry["chunk_id"],
+                )
+                if prev_article_no:
+                    session.run(
+                        """
+                        MATCH (a1:Article {source: $source, article_no: $prev})
+                        MATCH (a2:Article {source: $source, article_no: $curr})
+                        MERGE (a1)-[:NEXT_ARTICLE]->(a2)
+                        """,
+                        source=source,
+                        prev=prev_article_no,
+                        curr=article_no,
+                    )
+                prev_article_no = article_no
+
     def ensure_fulltext_indexes(self) -> None:
         """부팅 시 전문 검색 인덱스를 보장한다(§13.3). TODO: 스키마 확정 후 구현."""
         raise NotImplementedError("ensure_fulltext_indexes 미구현(스키마 대기).")
@@ -108,6 +144,10 @@ class GraphStore:
             )
             session.run(
                 "MATCH (c:Chunk {source: $source}) DETACH DELETE c",
+                source=source
+            )
+            session.run(
+                "MATCH (a:Article {source: $source}) DETACH DELETE a",
                 source=source
             )
             
