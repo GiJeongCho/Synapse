@@ -1,8 +1,0 @@
-{
-  "agent_id": "ai_news_curator",
-  "name": "Email Sender",
-  "description": "Sends formatted AI news summary to kny8664@naver.com via SMTP with retry logic",
-  "functions": [
-    "send_email"
-  ]
-}
