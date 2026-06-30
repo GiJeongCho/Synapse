@@ -1,0 +1,8 @@
+{
+  "agent_id": "ai_news_curator",
+  "name": "Daily Scheduler",
+  "description": "Schedules daily execution at 9:00 AM KST",
+  "functions": [
+    "daily_scheduler"
+  ]
+}

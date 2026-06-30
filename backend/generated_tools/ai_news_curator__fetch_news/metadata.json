@@ -1,0 +1,8 @@
+{
+  "agent_id": "ai_news_curator",
+  "name": "뉴스/웹 수집 (공용 파서)",
+  "description": "주제로 Google News RSS 등 검증된 소스를 자동 탐색해 기사를 수집",
+  "functions": [
+    "fetch_news"
+  ]
+}

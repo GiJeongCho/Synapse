@@ -1,0 +1,8 @@
+{
+  "agent_id": "ai_news_curator",
+  "name": "Email Sender",
+  "description": "Sends AI news digest to kny8664@naver.com via SMTP",
+  "functions": [
+    "send_email"
+  ]
+}

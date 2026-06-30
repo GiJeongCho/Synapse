@@ -6,7 +6,7 @@ import {
   deleteChunks,
 } from "../api/client";
 import type { DocumentItem } from "../types";
-import DocGraphFlow from "../components/flow/DocGraphFlow";
+import NeovisGraph from "../components/flow/NeovisGraph";
 
 interface Chunk {
   id: string;
@@ -250,7 +250,7 @@ export default function ViewerPage() {
 
             {/* 그래프 뷰 */}
             {viewMode === "graph" && (
-              <DocGraphFlow source={selectedSource!} />
+              <NeovisGraph source={selectedSource!} />
             )}
 
             {/* 청크 목록 뷰 */}
