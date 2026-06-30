@@ -1,0 +1,8 @@
+{
+  "agent_id": "naver_econ_news_agent",
+  "name": "Daily Scheduler",
+  "description": "Schedule workflow to run every 10 minutes starting at 9 AM daily with timezone awareness (KST).",
+  "functions": [
+    "daily_scheduler"
+  ]
+}

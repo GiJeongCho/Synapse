@@ -1,0 +1,71 @@
+{
+  "schedule_id": "sched_agent-37f070879116",
+  "agent_id": "agent-37f070879116",
+  "started_at": "2026-06-26T05:26:33.267051+00:00",
+  "completed_at": "2026-06-26T05:26:33.552240+00:00",
+  "pipeline_status": "partial_failure",
+  "failure_reason": "fetch_economic_news: 도구 실행 중 오류 발생",
+  "results": [
+    {
+      "tool_id": "econ_news_digest__fetch_economic_news",
+      "function": "fetch_economic_news",
+      "result": {
+        "status": "error",
+        "result": {
+          "status": "error",
+          "articles": [],
+          "error_message": "NEWSAPI_KEY not set"
+        }
+      },
+      "reason": "도구 실행 중 오류 발생"
+    },
+    {
+      "tool_id": "econ_news_digest__summarize_news",
+      "function": "summarize_news",
+      "result": {
+        "status": "skipped"
+      },
+      "reason": "이전 단계 실패로 건너뜀"
+    },
+    {
+      "tool_id": "econ_news_digest__send_digest_email",
+      "function": "send_digest_email",
+      "result": {
+        "status": "skipped"
+      },
+      "reason": "이전 단계 실패로 건너뜀"
+    },
+    {
+      "tool_id": "econ_news_digest__send_email_digest",
+      "function": "send_email_digest",
+      "result": {
+        "status": "skipped"
+      },
+      "reason": "이전 단계 실패로 건너뜀"
+    },
+    {
+      "tool_id": "econ_news_digest__send_news_email",
+      "function": "send_news_email",
+      "result": {
+        "status": "skipped"
+      },
+      "reason": "이전 단계 실패로 건너뜀"
+    },
+    {
+      "tool_id": "econ_news_digest__schedule_daily_digest",
+      "function": "schedule_daily_digest",
+      "result": {
+        "status": "skipped"
+      },
+      "reason": "스케줄 설정은 스케줄 페이지에서 관리"
+    },
+    {
+      "tool_id": "econ_news_digest__schedule_daily_task",
+      "function": "schedule_daily_task",
+      "result": {
+        "status": "skipped"
+      },
+      "reason": "스케줄 설정은 스케줄 페이지에서 관리"
+    }
+  ]
+}

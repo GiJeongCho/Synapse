@@ -79,6 +79,38 @@ async def _solo_pipeline(
 # Registry 등록 노드
 # ──────────────────────────────────────────────────────────
 
+def _graph_from_project_files(project_files: dict[str, Any]) -> dict[str, Any]:
+    """project_files의 workflow/tools로 React Flow 그래프를 만든다 (Solo 폴백)."""
+    pf = project_files if isinstance(project_files, dict) else {}
+    steps = pf.get("workflow") or [
+        t.get("tool_id", "").split("__", 1)[-1]
+        for t in pf.get("tools", []) if isinstance(t, dict)
+    ]
+    names = [s if isinstance(s, str) else s.get("name", f"step_{i}")
+             for i, s in enumerate(steps)] or ["agent"]
+
+    nodes = [
+        {
+            "id": name,
+            "type": "flowCard",
+            "position": {"x": i * 240, "y": 0},
+            "data": {"label": name, "desc": ""},
+            "style": {"width": 180},
+        }
+        for i, name in enumerate(names)
+    ]
+    edges = [
+        {
+            "id": f"e-{names[i]}-{names[i + 1]}",
+            "source": names[i],
+            "target": names[i + 1],
+            "animated": True,
+        }
+        for i in range(len(names) - 1)
+    ]
+    return {"nodes": nodes, "edges": edges}
+
+
 async def _register_agent(
     state: DualSupervisorState,
     config: RunnableConfig,
@@ -100,6 +132,8 @@ async def _register_agent(
         "mcp_tools": result.get("mcp_tools", []),
         "project_files": result.get("project_files", {}),
         "test_result": result.get("test_result", {}),
+        "graph_structure": result.get("graph_structure")
+        or _graph_from_project_files(result.get("project_files", {})),
         "created_at": datetime.now(timezone.utc).isoformat(),
         "version": 1,
         "mode": mode,

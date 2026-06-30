@@ -5,7 +5,11 @@ Embedding is delegated to the external FastAPI embed service (settings.embed_api
 
 from __future__ import annotations
 
+import os
 from typing import Any
+
+os.environ.setdefault("GRPC_KEEPALIVE_TIME_MS", "120000")
+os.environ.setdefault("GRPC_KEEPALIVE_PERMIT_WITHOUT_CALLS", "0")
 
 import httpx
 from pymilvus import MilvusClient

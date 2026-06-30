@@ -1,0 +1,131 @@
+{
+  "schedule_id": "sched_agent-1304f09f4064",
+  "agent_id": "agent-1304f09f4064",
+  "started_at": "2026-06-27T00:10:00.003216+00:00",
+  "completed_at": "2026-06-27T00:10:06.200827+00:00",
+  "pipeline_status": "success",
+  "failure_reason": "",
+  "results": [
+    {
+      "tool_id": "daily_economic_news_digest__fetch_economic_news",
+      "function": "fetch_economic_news",
+      "result": {
+        "status": "success",
+        "result": {
+          "status": "success",
+          "articles": [
+            {
+              "title": "‘We need to save Wendy’s’: How a perfect storm of conditions created the latest meme stock frenzy",
+              "summary": "",
+              "link": "https://finance.yahoo.com/markets/stocks/articles/save-wendy-perfect-storm-conditions-164500645.html",
+              "source": "finance.yahoo.com"
+            },
+            {
+              "title": "HIVE Board Member Sells Nearly $1 Million Of Company Stock",
+              "summary": "",
+              "link": "https://finance.yahoo.com/markets/stocks/articles/hive-board-member-sells-nearly-164500540.html",
+              "source": "finance.yahoo.com"
+            },
+            {
+              "title": "Dear Verizon Stock Fans, Mark Your Calendars for June 29",
+              "summary": "",
+              "link": "https://finance.yahoo.com/markets/stocks/articles/dear-verizon-stock-fans-mark-165303224.html",
+              "source": "finance.yahoo.com"
+            }
+          ],
+          "content": "‘We need to save Wendy’s’: How a perfect storm of conditions created the latest meme stock frenzy - \nHIVE Board Member Sells Nearly $1 Million Of Company Stock - \nDear Verizon Stock Fans, Mark Your Calendars for June 29 - ",
+          "article_count": 3,
+          "message": "Fetched 3 economic articles"
+        }
+      }
+    },
+    {
+      "tool_id": "daily_economic_news_digest__deduplicate_filter",
+      "function": "deduplicate_filter",
+      "result": {
+        "status": "success",
+        "result": {
+          "status": "success",
+          "articles": [
+            {
+              "title": "‘We need to save Wendy’s’: How a perfect storm of conditions created the latest meme stock frenzy",
+              "summary": "",
+              "link": "https://finance.yahoo.com/markets/stocks/articles/save-wendy-perfect-storm-conditions-164500645.html",
+              "source": "finance.yahoo.com"
+            },
+            {
+              "title": "HIVE Board Member Sells Nearly $1 Million Of Company Stock",
+              "summary": "",
+              "link": "https://finance.yahoo.com/markets/stocks/articles/hive-board-member-sells-nearly-164500540.html",
+              "source": "finance.yahoo.com"
+            },
+            {
+              "title": "Dear Verizon Stock Fans, Mark Your Calendars for June 29",
+              "summary": "",
+              "link": "https://finance.yahoo.com/markets/stocks/articles/dear-verizon-stock-fans-mark-165303224.html",
+              "source": "finance.yahoo.com"
+            }
+          ],
+          "content": "‘We need to save Wendy’s’: How a perfect storm of conditions created the latest meme stock frenzy - \nHIVE Board Member Sells Nearly $1 Million Of Company Stock - \nDear Verizon Stock Fans, Mark Your Calendars for June 29 - ",
+          "unique_count": 3,
+          "duplicates_removed": 0,
+          "message": "Deduplicated to 3 unique articles"
+        }
+      }
+    },
+    {
+      "tool_id": "daily_economic_news_digest__summarize_content",
+      "function": "summarize_content",
+      "result": {
+        "status": "success",
+        "result": {
+          "status": "success",
+          "summary": "I don't have access to the full content of these articles, so I cannot provide an accurate summary. To create a reliable bullet-point digest, I would need:\n\n1. The complete article text or detailed summaries for each piece\n2. Key figures, quotes, or data points from each story\n\nCould you please provide the full article content or summaries so I can create an accurate 5-bullet digest?",
+          "content": "I don't have access to the full content of these articles, so I cannot provide an accurate summary. To create a reliable bullet-point digest, I would need:\n\n1. The complete article text or detailed summaries for each piece\n2. Key figures, quotes, or data points from each story\n\nCould you please provide the full article content or summaries so I can create an accurate 5-bullet digest?",
+          "articles": [
+            {
+              "title": "‘We need to save Wendy’s’: How a perfect storm of conditions created the latest meme stock frenzy",
+              "summary": "",
+              "link": "https://finance.yahoo.com/markets/stocks/articles/save-wendy-perfect-storm-conditions-164500645.html",
+              "source": "finance.yahoo.com"
+            },
+            {
+              "title": "HIVE Board Member Sells Nearly $1 Million Of Company Stock",
+              "summary": "",
+              "link": "https://finance.yahoo.com/markets/stocks/articles/hive-board-member-sells-nearly-164500540.html",
+              "source": "finance.yahoo.com"
+            },
+            {
+              "title": "Dear Verizon Stock Fans, Mark Your Calendars for June 29",
+              "summary": "",
+              "link": "https://finance.yahoo.com/markets/stocks/articles/dear-verizon-stock-fans-mark-165303224.html",
+              "source": "finance.yahoo.com"
+            }
+          ],
+          "message": "Summarized 3 articles using Claude"
+        }
+      }
+    },
+    {
+      "tool_id": "daily_economic_news_digest__email_deliver",
+      "function": "email_deliver",
+      "result": {
+        "status": "success",
+        "result": {
+          "status": "success",
+          "message": "Email sent to wzxcv123@naver.com",
+          "recipient": "wzxcv123@naver.com",
+          "timestamp": "2026-06-27T09:10:06.160164"
+        }
+      }
+    },
+    {
+      "tool_id": "daily_economic_news_digest__schedule_trigger",
+      "function": "schedule_trigger",
+      "result": {
+        "status": "skipped"
+      },
+      "reason": "스케줄 설정은 스케줄 페이지에서 관리"
+    }
+  ]
+}

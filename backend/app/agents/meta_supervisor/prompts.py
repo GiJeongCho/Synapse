@@ -54,6 +54,15 @@ Evaluate on these criteria:
 4. **Code Quality**: Is the code clean, secure, and maintainable?
 5. **Completeness**: Are all required files and configurations present?
 
+CRITICAL — RUNTIME EVIDENCE:
+A "Runtime Test" section shows the ACTUAL result of running the generated tools
+(dry-run; send/email steps are skipped on purpose).
+- If runtime_test.failed is true, you MUST set "passed": false and lower
+  the "functionality" score. Put the runtime failure_reason at the TOP of "errors".
+- Make the "improvement_plan" target the EXACT failing tool/step (e.g. fix a wrong
+  data source, a parsing bug, a missing default arg, or a blocked website).
+- Runtime evidence outweighs static code review. A tool that fails to run is NOT done.
+
 Output a JSON object with:
 - "passed": boolean - does this meet the quality bar?
 - "scores": dict with keys "functionality", "tool_integration", "prompt_quality", "code_quality", "completeness", each float 0-1
@@ -72,6 +81,7 @@ CRITIC_PROMPT = ChatPromptTemplate.from_messages([
         "Current Round: {round}\n"
         "Builder's Strategy:\n{builder_strategy}\n\n"
         "Generated Agent:\n{current_result}\n\n"
+        "Runtime Test (actual execution, dry-run):\n{runtime_test}\n\n"
         "Current Evaluation Criteria:\n{eval_criteria}\n\n"
         "History:\n{history}"
     )),

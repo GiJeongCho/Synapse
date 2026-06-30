@@ -1,0 +1,221 @@
+{
+  "schedule_id": "sched_agent-1304f09f4064",
+  "agent_id": "agent-1304f09f4064",
+  "started_at": "2026-06-28T00:10:00.002193+00:00",
+  "completed_at": "2026-06-28T00:10:06.345429+00:00",
+  "pipeline_status": "success",
+  "failure_reason": "",
+  "results": [
+    {
+      "tool_id": "daily_economic_news_digest__fetch_economic_news",
+      "function": "fetch_economic_news",
+      "result": {
+        "status": "success",
+        "result": {
+          "status": "success",
+          "articles": [
+            {
+              "title": "JPMorgan doubles down on stock market, S&P 500",
+              "summary": "",
+              "link": "https://finance.yahoo.com/markets/stocks/articles/jpmorgan-doubles-down-stock-market-174700040.html",
+              "source": "finance.yahoo.com"
+            },
+            {
+              "title": "Inside Jefferies’ Latest Call on Lamb Weston Holdings Inc (LW) Stock",
+              "summary": "",
+              "link": "https://finance.yahoo.com/markets/stocks/articles/inside-jefferies-latest-call-lamb-175146623.html",
+              "source": "finance.yahoo.com"
+            },
+            {
+              "title": "Fiserv (FISV) Makes Push Into European Debt Markets, Seeks €1 Billion",
+              "summary": "",
+              "link": "https://finance.yahoo.com/markets/stocks/articles/fiserv-fisv-makes-push-european-175132830.html",
+              "source": "finance.yahoo.com"
+            },
+            {
+              "title": "Microsoft Just Made Commvault a Native Azure Service. Here Is How to Play CVLT Stock.",
+              "summary": "",
+              "link": "https://finance.yahoo.com/markets/stocks/articles/microsoft-just-made-commvault-native-175657697.html",
+              "source": "finance.yahoo.com"
+            },
+            {
+              "title": "Corning Stock: Get A Fast 59% Return From The Glass Maker And AI Play",
+              "summary": "",
+              "link": "https://www.investors.com/research/options/corning-stock-glw-manufacturer-ai-data-centers-options-income-investing-markets/?src=A00220&yptr=yahoo",
+              "source": "finance.yahoo.com"
+            },
+            {
+              "title": "Apple Stock: Margin Pressure and Valuation Weaken the Bull Case",
+              "summary": "",
+              "link": "https://finance.yahoo.com/markets/stocks/articles/apple-stock-margin-pressure-valuation-173612520.html",
+              "source": "finance.yahoo.com"
+            },
+            {
+              "title": "Bitcoin Tests $59K as ETF Outflows and Options Expiry Weigh on Market",
+              "summary": "",
+              "link": "https://finance.yahoo.com/markets/crypto/articles/bitcoin-tests-59k-etf-outflows-173200686.html",
+              "source": "finance.yahoo.com"
+            },
+            {
+              "title": "Equinor Pulls Out of Japan’s Offshore Wind Market",
+              "summary": "",
+              "link": "https://finance.yahoo.com/energy/articles/equinor-pulls-japan-offshore-wind-173000888.html",
+              "source": "finance.yahoo.com"
+            }
+          ],
+          "content": "JPMorgan doubles down on stock market, S&P 500 - \nInside Jefferies’ Latest Call on Lamb Weston Holdings Inc (LW) Stock - \nFiserv (FISV) Makes Push Into European Debt Markets, Seeks €1 Billion - \nMicrosoft Just Made Commvault a Native Azure Service. Here Is How to Play CVLT Stock. - \nCorning Stock: Get A Fast 59% Return From The Glass Maker And AI Play - \nApple Stock: Margin Pressure and Valuation Weaken the Bull Case - \nBitcoin Tests $59K as ETF Outflows and Options Expiry Weigh on Market - \nEquinor Pulls Out of Japan’s Offshore Wind Market - ",
+          "article_count": 8,
+          "message": "Fetched 8 economic articles"
+        }
+      }
+    },
+    {
+      "tool_id": "daily_economic_news_digest__deduplicate_filter",
+      "function": "deduplicate_filter",
+      "result": {
+        "status": "success",
+        "result": {
+          "status": "success",
+          "articles": [
+            {
+              "title": "JPMorgan doubles down on stock market, S&P 500",
+              "summary": "",
+              "link": "https://finance.yahoo.com/markets/stocks/articles/jpmorgan-doubles-down-stock-market-174700040.html",
+              "source": "finance.yahoo.com"
+            },
+            {
+              "title": "Inside Jefferies’ Latest Call on Lamb Weston Holdings Inc (LW) Stock",
+              "summary": "",
+              "link": "https://finance.yahoo.com/markets/stocks/articles/inside-jefferies-latest-call-lamb-175146623.html",
+              "source": "finance.yahoo.com"
+            },
+            {
+              "title": "Fiserv (FISV) Makes Push Into European Debt Markets, Seeks €1 Billion",
+              "summary": "",
+              "link": "https://finance.yahoo.com/markets/stocks/articles/fiserv-fisv-makes-push-european-175132830.html",
+              "source": "finance.yahoo.com"
+            },
+            {
+              "title": "Microsoft Just Made Commvault a Native Azure Service. Here Is How to Play CVLT Stock.",
+              "summary": "",
+              "link": "https://finance.yahoo.com/markets/stocks/articles/microsoft-just-made-commvault-native-175657697.html",
+              "source": "finance.yahoo.com"
+            },
+            {
+              "title": "Corning Stock: Get A Fast 59% Return From The Glass Maker And AI Play",
+              "summary": "",
+              "link": "https://www.investors.com/research/options/corning-stock-glw-manufacturer-ai-data-centers-options-income-investing-markets/?src=A00220&yptr=yahoo",
+              "source": "finance.yahoo.com"
+            },
+            {
+              "title": "Apple Stock: Margin Pressure and Valuation Weaken the Bull Case",
+              "summary": "",
+              "link": "https://finance.yahoo.com/markets/stocks/articles/apple-stock-margin-pressure-valuation-173612520.html",
+              "source": "finance.yahoo.com"
+            },
+            {
+              "title": "Bitcoin Tests $59K as ETF Outflows and Options Expiry Weigh on Market",
+              "summary": "",
+              "link": "https://finance.yahoo.com/markets/crypto/articles/bitcoin-tests-59k-etf-outflows-173200686.html",
+              "source": "finance.yahoo.com"
+            },
+            {
+              "title": "Equinor Pulls Out of Japan’s Offshore Wind Market",
+              "summary": "",
+              "link": "https://finance.yahoo.com/energy/articles/equinor-pulls-japan-offshore-wind-173000888.html",
+              "source": "finance.yahoo.com"
+            }
+          ],
+          "content": "JPMorgan doubles down on stock market, S&P 500 - \nInside Jefferies’ Latest Call on Lamb Weston Holdings Inc (LW) Stock - \nFiserv (FISV) Makes Push Into European Debt Markets, Seeks €1 Billion - \nMicrosoft Just Made Commvault a Native Azure Service. Here Is How to Play CVLT Stock. - \nCorning Stock: Get A Fast 59% Return From The Glass Maker And AI Play - \nApple Stock: Margin Pressure and Valuation Weaken the Bull Case - \nBitcoin Tests $59K as ETF Outflows and Options Expiry Weigh on Market - \nEquinor Pulls Out of Japan’s Offshore Wind Market - ",
+          "unique_count": 8,
+          "duplicates_removed": 0,
+          "message": "Deduplicated to 8 unique articles"
+        }
+      }
+    },
+    {
+      "tool_id": "daily_economic_news_digest__summarize_content",
+      "function": "summarize_content",
+      "result": {
+        "status": "success",
+        "result": {
+          "status": "success",
+          "summary": "I don't have access to the actual content of these articles - only the titles are visible. To provide you with an accurate bullet-point digest, I would need the full text or summaries of each article.\n\nCould you please provide the article content or summaries so I can create the concise digest you're looking for?",
+          "content": "I don't have access to the actual content of these articles - only the titles are visible. To provide you with an accurate bullet-point digest, I would need the full text or summaries of each article.\n\nCould you please provide the article content or summaries so I can create the concise digest you're looking for?",
+          "articles": [
+            {
+              "title": "JPMorgan doubles down on stock market, S&P 500",
+              "summary": "",
+              "link": "https://finance.yahoo.com/markets/stocks/articles/jpmorgan-doubles-down-stock-market-174700040.html",
+              "source": "finance.yahoo.com"
+            },
+            {
+              "title": "Inside Jefferies’ Latest Call on Lamb Weston Holdings Inc (LW) Stock",
+              "summary": "",
+              "link": "https://finance.yahoo.com/markets/stocks/articles/inside-jefferies-latest-call-lamb-175146623.html",
+              "source": "finance.yahoo.com"
+            },
+            {
+              "title": "Fiserv (FISV) Makes Push Into European Debt Markets, Seeks €1 Billion",
+              "summary": "",
+              "link": "https://finance.yahoo.com/markets/stocks/articles/fiserv-fisv-makes-push-european-175132830.html",
+              "source": "finance.yahoo.com"
+            },
+            {
+              "title": "Microsoft Just Made Commvault a Native Azure Service. Here Is How to Play CVLT Stock.",
+              "summary": "",
+              "link": "https://finance.yahoo.com/markets/stocks/articles/microsoft-just-made-commvault-native-175657697.html",
+              "source": "finance.yahoo.com"
+            },
+            {
+              "title": "Corning Stock: Get A Fast 59% Return From The Glass Maker And AI Play",
+              "summary": "",
+              "link": "https://www.investors.com/research/options/corning-stock-glw-manufacturer-ai-data-centers-options-income-investing-markets/?src=A00220&yptr=yahoo",
+              "source": "finance.yahoo.com"
+            },
+            {
+              "title": "Apple Stock: Margin Pressure and Valuation Weaken the Bull Case",
+              "summary": "",
+              "link": "https://finance.yahoo.com/markets/stocks/articles/apple-stock-margin-pressure-valuation-173612520.html",
+              "source": "finance.yahoo.com"
+            },
+            {
+              "title": "Bitcoin Tests $59K as ETF Outflows and Options Expiry Weigh on Market",
+              "summary": "",
+              "link": "https://finance.yahoo.com/markets/crypto/articles/bitcoin-tests-59k-etf-outflows-173200686.html",
+              "source": "finance.yahoo.com"
+            },
+            {
+              "title": "Equinor Pulls Out of Japan’s Offshore Wind Market",
+              "summary": "",
+              "link": "https://finance.yahoo.com/energy/articles/equinor-pulls-japan-offshore-wind-173000888.html",
+              "source": "finance.yahoo.com"
+            }
+          ],
+          "message": "Summarized 8 articles using Claude"
+        }
+      }
+    },
+    {
+      "tool_id": "daily_economic_news_digest__email_deliver",
+      "function": "email_deliver",
+      "result": {
+        "status": "success",
+        "result": {
+          "status": "success",
+          "message": "Email sent to wzxcv123@naver.com",
+          "recipient": "wzxcv123@naver.com",
+          "timestamp": "2026-06-28T09:10:06.303184"
+        }
+      }
+    },
+    {
+      "tool_id": "daily_economic_news_digest__schedule_trigger",
+      "function": "schedule_trigger",
+      "result": {
+        "status": "skipped"
+      },
+      "reason": "스케줄 설정은 스케줄 페이지에서 관리"
+    }
+  ]
+}

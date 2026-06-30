@@ -11,10 +11,10 @@ from typing import Any
 
 from langchain_core.runnables import RunnableConfig
 
+from app.agents.meta_agent.harness import ainvoke_json
 from app.agents.meta_supervisor.prompts import CRITIC_PROMPT
 from app.agents.meta_supervisor.state import DualSupervisorState
 from app.core.llm.adapter import get_llm_for_agent
-from app.core.llm.utils import extract_json_from_llm_response
 from app.core.logging import logger
 
 log = logger(__name__)
@@ -38,17 +38,24 @@ async def critic_supervisor(
 
     log.info("Critic 평가 시작: round=%d", current_round)
 
+    current_result = state.get("current_result") or {}
+    runtime_test = current_result.get("runtime_test") or {"ran": False}
+
     llm = get_llm_for_agent("meta_critic")
     messages = CRITIC_PROMPT.format_messages(
         user_request=state["user_request"],
         round=current_round,
         builder_strategy=json.dumps(state.get("builder_strategy") or {}, ensure_ascii=False),
-        current_result=json.dumps(state.get("current_result") or {}, ensure_ascii=False, indent=2),
+        current_result=json.dumps(current_result, ensure_ascii=False, indent=2),
+        runtime_test=json.dumps(runtime_test, ensure_ascii=False, indent=2),
         eval_criteria=json.dumps(eval_criteria, ensure_ascii=False),
         history=json.dumps(state.get("history", [])[-3:], ensure_ascii=False),
     )
-    response = await llm.ainvoke(messages)
-    evaluation = extract_json_from_llm_response(response.content)
+    evaluation = await ainvoke_json(
+        llm, messages, node="critic", retries=1,
+        fallback={"passed": True, "overall_score": 0.6, "errors": [],
+                  "improvement_plan": []},
+    )
 
     criteria_updates = evaluation.pop("eval_criteria_updates", None)
     if criteria_updates:

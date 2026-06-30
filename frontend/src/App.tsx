@@ -37,7 +37,10 @@ export default function App() {
           <Route path="/agents/flow" element={<AgentFlowPage />} />
           <Route path="/tools" element={<ToolsPage />} />
           <Route path="/schedules" element={<SchedulesPage />} />
-          <Route path="/" element={<PlaceholderPage title="Synapse" description="좌측 메뉴에서 페이지를 선택하세요." />} />
+          <Route
+            path="/"
+            element={<PlaceholderPage title="Synapse" description="좌측 메뉴에서 페이지를 선택하세요." />}
+          />
         </Routes>
       </main>
     </div>

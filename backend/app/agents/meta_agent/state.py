@@ -15,6 +15,9 @@ class MetaAgentState(TypedDict, total=False):
     # Requirements Analyzer
     agent_spec: dict[str, Any]
 
+    # Planner — 도구/에이전트 판단 + todolist + 구조 설계
+    plan: dict[str, Any]
+
     # Tool Retriever
     mcp_tools: list[dict[str, Any]]
 
@@ -25,6 +28,9 @@ class MetaAgentState(TypedDict, total=False):
     # Evaluator
     test_result: dict[str, Any]
     retry_count: int
+
+    # Completer — todolist 대조 완료 검증/보고
+    completion_report: dict[str, Any]
 
     current_step: str
     error: Optional[str]

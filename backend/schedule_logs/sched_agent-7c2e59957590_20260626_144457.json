@@ -1,0 +1,87 @@
+{
+  "schedule_id": "sched_agent-7c2e59957590",
+  "agent_id": "agent-7c2e59957590",
+  "started_at": "2026-06-26T05:44:56.627260+00:00",
+  "completed_at": "2026-06-26T05:44:57.625643+00:00",
+  "pipeline_status": "partial_failure",
+  "failure_reason": "fetch_econ_news: 콘텐츠를 가져오지 못했습니다 (본문 없음)",
+  "results": [
+    {
+      "tool_id": "econ_news_digest__fetch_econ_news",
+      "function": "fetch_econ_news",
+      "result": {
+        "status": "error",
+        "result": {
+          "status": "success",
+          "content": "",
+          "articles": []
+        }
+      },
+      "reason": "콘텐츠를 가져오지 못했습니다 (본문 없음)"
+    },
+    {
+      "tool_id": "econ_news_digest__fetch_economic_news",
+      "function": "fetch_economic_news",
+      "result": {
+        "status": "skipped"
+      },
+      "reason": "이전 단계 실패로 건너뜀"
+    },
+    {
+      "tool_id": "econ_news_digest__summarize_news",
+      "function": "summarize_news",
+      "result": {
+        "status": "skipped"
+      },
+      "reason": "이전 단계 실패로 건너뜀"
+    },
+    {
+      "tool_id": "econ_news_digest__summarize_news_digest",
+      "function": "summarize_news_digest",
+      "result": {
+        "status": "skipped"
+      },
+      "reason": "이전 단계 실패로 건너뜀"
+    },
+    {
+      "tool_id": "econ_news_digest__send_digest_email",
+      "function": "send_digest_email",
+      "result": {
+        "status": "skipped"
+      },
+      "reason": "이전 단계 실패로 건너뜀"
+    },
+    {
+      "tool_id": "econ_news_digest__send_email_digest",
+      "function": "send_email_digest",
+      "result": {
+        "status": "skipped"
+      },
+      "reason": "이전 단계 실패로 건너뜀"
+    },
+    {
+      "tool_id": "econ_news_digest__send_news_email",
+      "function": "send_news_email",
+      "result": {
+        "status": "skipped"
+      },
+      "reason": "이전 단계 실패로 건너뜀"
+    },
+    {
+      "tool_id": "econ_news_digest__schedule_daily_digest",
+      "function": "schedule_daily_digest",
+      "result": {
+        "status": "skipped"
+      },
+      "reason": "스케줄 설정은 스케줄 페이지에서 관리"
+    },
+    {
+      "tool_id": "econ_news_digest__schedule_daily_task",
+      "function": "schedule_daily_task",
+      "result": {
+        "status": "skipped"
+      },
+      "reason": "스케줄 설정은 스케줄 페이지에서 관리"
+    }
+  ]
+}

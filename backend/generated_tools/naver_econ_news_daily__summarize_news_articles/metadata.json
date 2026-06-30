@@ -1,0 +1,8 @@
+{
+  "agent_id": "naver_econ_news_daily",
+  "name": "News Article Summarizer",
+  "description": "Summarizes fetched news articles using Claude LLM into concise Korean bullet-point format.",
+  "functions": [
+    "summarize_news_articles"
+  ]
+}

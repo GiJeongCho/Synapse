@@ -1,0 +1,7 @@
+{
+  "agent_id": "shared",
+  "name": "사이트 파서 (공용)",
+  "description": "주제 또는 URL로 콘텐츠를 자동 탐색·파싱하는 공용 도구 (에이전트 삭제와 무관하게 영구 보존)",
+  "functions": ["site_parser"],
+  "shared": true
+}

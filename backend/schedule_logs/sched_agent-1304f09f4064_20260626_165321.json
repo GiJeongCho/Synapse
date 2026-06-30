@@ -1,0 +1,98 @@
+{
+  "schedule_id": "sched_agent-1304f09f4064",
+  "agent_id": "agent-1304f09f4064",
+  "started_at": "2026-06-26T07:53:16.769739+00:00",
+  "completed_at": "2026-06-26T07:53:21.572554+00:00",
+  "pipeline_status": "success",
+  "failure_reason": "",
+  "results": [
+    {
+      "tool_id": "daily_economic_news_digest__fetch_economic_news",
+      "function": "fetch_economic_news",
+      "result": {
+        "status": "success",
+        "result": {
+          "status": "success",
+          "articles": [
+            {
+              "title": "Dear BlackBerry Stock Fans, Mark Your Calendars for June 25",
+              "summary": "",
+              "link": "https://finance.yahoo.com/markets/stocks/articles/dear-blackberry-stock-fans-mark-194319831.html",
+              "source": "finance.yahoo.com"
+            },
+            {
+              "title": "Can you write checks from a money market account?",
+              "summary": "",
+              "link": "https://finance.yahoo.com/personal-finance/banking/article/can-you-write-checks-from-a-money-market-account-194030965.html",
+              "source": "finance.yahoo.com"
+            },
+            {
+              "title": "GOOGL Stock Alert: What to Know as Alphabet Joins the Dow Jones Industrial Average",
+              "summary": "",
+              "link": "https://finance.yahoo.com/markets/stocks/articles/googl-stock-alert-know-alphabet-194802022.html",
+              "source": "finance.yahoo.com"
+            },
+            {
+              "title": "SpaceX stock slips as it announces $25 billion bond offering",
+              "summary": "",
+              "link": "https://finance.yahoo.com/markets/stocks/article/spacex-stock-slips-as-it-announces-25-billion-bond-offering-135726178.html",
+              "source": "finance.yahoo.com"
+            }
+          ],
+          "content": "Dear BlackBerry Stock Fans, Mark Your Calendars for June 25 - \nCan you write checks from a money market account? - \nGOOGL Stock Alert: What to Know as Alphabet Joins the Dow Jones Industrial Average - \nSpaceX stock slips as it announces $25 billion bond offering - ",
+          "article_count": 4,
+          "message": "Fetched 4 economic articles"
+        }
+      }
+    },
+    {
+      "tool_id": "daily_economic_news_digest__deduplicate_filter",
+      "function": "deduplicate_filter",
+      "result": {
+        "status": "success",
+        "result": {
+          "status": "success",
+          "articles": [],
+          "content": "",
+          "unique_count": 0,
+          "duplicates_removed": 0,
+          "message": "Deduplicated to 0 unique articles"
+        }
+      }
+    },
+    {
+      "tool_id": "daily_economic_news_digest__summarize_content",
+      "function": "summarize_content",
+      "result": {
+        "status": "success",
+        "result": {
+          "status": "success",
+          "summary": "No new economic articles to summarize.",
+          "content": "",
+          "message": "No articles provided"
+        }
+      }
+    },
+    {
+      "tool_id": "daily_economic_news_digest__email_deliver",
+      "function": "email_deliver",
+      "result": {
+        "status": "success",
+        "result": {
+          "status": "success",
+          "message": "Email sent to wzxcv123@naver.com",
+          "recipient": "wzxcv123@naver.com",
+          "timestamp": "2026-06-26T16:53:21.548012"
+        }
+      }
+    },
+    {
+      "tool_id": "daily_economic_news_digest__schedule_trigger",
+      "function": "schedule_trigger",
+      "result": {
+        "status": "skipped"
+      },
+      "reason": "스케줄 설정은 스케줄 페이지에서 관리"
+    }
+  ]
+}

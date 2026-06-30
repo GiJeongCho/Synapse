@@ -65,7 +65,6 @@ export interface SearchResponse {
   total: number;
 }
 
-
 // ── 워크플로우 흐름도 ──
 export interface FlowNodeData {
   label: string;

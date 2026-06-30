@@ -1,0 +1,184 @@
+{
+  "schedule_id": "sched_agent-177df94e58b4",
+  "agent_id": "agent-177df94e58b4",
+  "started_at": "2026-06-26T06:30:02.785064+00:00",
+  "completed_at": "2026-06-26T06:30:05.828083+00:00",
+  "pipeline_status": "partial_failure",
+  "failure_reason": "fetch_economic_news: 도구 실행 중 오류 발생 — NEWSAPI_KEY not set",
+  "results": [
+    {
+      "tool_id": "econ_news_digest__fetch_econ_news",
+      "function": "fetch_econ_news",
+      "result": {
+        "status": "success",
+        "result": {
+          "status": "success",
+          "articles": [
+            {
+              "title": "UN agency pauses Hormuz ship evacuation plan after first vessel attack under peace deal",
+              "summary": "The pause follows a container ship being struck near the coast of Oman on Thursday, with a U.S. official saying that Iran was responsible for the attack.",
+              "link": "https://www.cnbc.com/2026/06/26/strait-of-hormuz-vessel-attack-evacuation-pauses-iran-united-states-peace-deal-negotiation-.html",
+              "hash": "68ff32a1a0e22c88607f5800177cd320"
+            },
+            {
+              "title": "Core inflation rate hit 3.4% in May, highest since October 2023, Fed’s preferred gauge shows",
+              "summary": "The personal consumption expenditures price index was expected to show a 4.1% annual increase.",
+              "link": "https://www.cnbc.com/2026/06/25/pce-inflation-report-may-2026-.html",
+              "hash": "f36fbcc0a9f958d7bb820bfd486e36a2"
+            },
+            {
+              "title": "Trump pledges rapid U.S. response for Venezuela after historic earthquakes kill hundreds",
+              "summary": "The swift U.S. offer of assistance reflects a degree of diplomatic realignment between the Trump administration and the Venezuelan interim government.",
+              "link": "https://www.cnbc.com/2026/06/25/venezuela-earthquakes-casualties-trump-pledges-support-aids-oil-.html",
+              "hash": "e8ba228877ff76840c7e80e35b8da9f5"
+            },
+            {
+              "title": "Iran warns ships it's 'unacceptable and dangerous' to transit the Strait of Hormuz without their approval",
+              "summary": "The stern warning underscores Tehran's resolve to retain control over the Strait of Hormuz and to resist transits that bypass its authorization.",
+              "link": "https://www.cnbc.com/2026/06/25/iran-navy-shipping-recovery-strait-of-hormuz-unauthorized-routes-us-fragile-mou-.html",
+              "hash": "ee73d5b0243c9f1fd46d1b15f9dd2d96"
+            },
+            {
+              "title": "Factory job cuts in June neared financial crisis and Covid levels, S&P says",
+              "summary": "Though the firm's manufacturing index ran better than expected for June, it came largely from an inventory rebuild and despite sharp job cuts.",
+              "link": "https://www.cnbc.com/2026/06/23/factory-job-cuts-reported-around-financial-crisis-and-covid-levels-for-june-sp-says.html",
+              "hash": "fb8dc3d90d17f873e188eb44f2b1e518"
+            },
+            {
+              "title": "U.S. issues sweeping Iran oil sanctions waivers, unlocking billions in revenue for Tehran",
+              "summary": "The U.S. issued a sweeping rollback of sanctions on Iranian oil, offering Tehran an economic lifeline as negotiations toward a peace deal proceed.",
+              "link": "https://www.cnbc.com/2026/06/23/us-iran-oil-sanction-relief-strait-of-hormuz-peace-deal-.html",
+              "hash": "ee87c23f8f53e930f6cfd1fdf680fcaa"
+            },
+            {
+              "title": "Struggling to find a job? Try looking in Nevada",
+              "summary": "The sparsely populated state known for its world-class casinos and dry climate has been a hiring hot spot.",
+              "link": "https://www.cnbc.com/2026/06/19/nevada-workforce-job-market.html",
+              "hash": "0a3c03ea740afa1c9686667226cd4ea8"
+            },
+            {
+              "title": "Hormuz relief may not ease the economic toll that's already 'baked in,' analysts warn",
+              "summary": "Early signs of reopening of the Strait of Hormuz have lifted the most acute threat to global energy supplies but economic damages from the war will take months to unwind.",
+              "link": "https://www.cnbc.com/2026/06/19/hormuz-relief-may-not-ease-the-economic-toll-thats-already-baked-in-analysts-warn.html",
+              "hash": "4c22bdc98748579d0cd169550bdacca2"
+            },
+            {
+              "title": "Trump claims Iran deal is 'unconditional surrender,' says his power has 'no limits': Axios",
+              "summary": "Trump said in an interview with Axios on Thursday evening stateside that he negotiated the deal to prevent the conflict from triggering a global depression.",
+              "link": "https://www.cnbc.com/2026/06/19/trump-claims-iran-deal-is-unconditional-surrender-axios-.html",
+              "hash": "e870894d2e1a81bab7b70dddb20fb2a3"
+            },
+            {
+              "title": "Bank of England holds interest rates at 3.75% amid Iran war peace prospects",
+              "summary": "The Bank of England's Monetary Policy Committee voted 7-2 to keep rates on hold.",
+              "link": "https://www.cnbc.com/2026/06/18/inflation-interest-rates-uk-bank-of-england-iran-deal.html",
+              "hash": "081f6c722ba8f80d2760e05d40054cf2"
+            }
+          ],
+          "content": "UN agency pauses Hormuz ship evacuation plan after first vessel attack under peace deal - The pause follows a container ship being struck near the coast of Oman on Thursday, with a U.S. official saying that Iran was responsible for the attack.\nCore inflation rate hit 3.4% in May, highest since October 2023, Fed’s preferred gauge shows - The personal consumption expenditures price index was expected to show a 4.1% annual increase.\nTrump pledges rapid U.S. response for Venezuela after historic earthquakes kill hundreds - The swift U.S. offer of assistance reflects a degree of diplomatic realignment between the Trump administration and the Venezuelan interim government.\nIran warns ships it's 'unacceptable and dangerous' to transit the Strait of Hormuz without their approval - The stern warning underscores Tehran's resolve to retain control over the Strait of Hormuz and to resist transits that bypass its authorization.\nFactory job cuts in June neared financial crisis and Covid levels, S&P says - Though the firm's manufacturing index ran better than expected for June, it came largely from an inventory rebuild and despite sharp job cuts.\nU.S. issues sweeping Iran oil sanctions waivers, unlocking billions in revenue for Tehran - The U.S. issued a sweeping rollback of sanctions on Iranian oil, offering Tehran an economic lifeline as negotiations toward a peace deal proceed.\nStruggling to find a job? Try looking in Nevada - The sparsely populated state known for its world-class casinos and dry climate has been a hiring hot spot.\nHormuz relief may not ease the economic toll that's already 'baked in,' analysts warn - Early signs of reopening of the Strait of Hormuz have lifted the most acute threat to global energy supplies but economic damages from the war will take months to unwind.\nTrump claims Iran deal is 'unconditional surrender,' says his power has 'no limits': Axios - Trump said in an interview with Axios on Thursday evening stateside that he negotiated the deal to prevent the conflict from triggering a global depression.\nBank of England holds interest rates at 3.75% amid Iran war peace prospects - The Bank of England's Monetary Policy Committee voted 7-2 to keep rates on hold."
+        }
+      }
+    },
+    {
+      "tool_id": "econ_news_digest__fetch_economic_news",
+      "function": "fetch_economic_news",
+      "result": {
+        "status": "error",
+        "result": {
+          "status": "error",
+          "articles": [],
+          "error_message": "NEWSAPI_KEY not set"
+        }
+      },
+      "reason": "도구 실행 중 오류 발생 — NEWSAPI_KEY not set"
+    },
+    {
+      "tool_id": "econ_news_digest__fetch_economy_news",
+      "function": "fetch_economy_news",
+      "result": {
+        "status": "skipped"
+      },
+      "reason": "이전 단계 실패로 건너뜀"
+    },
+    {
+      "tool_id": "econ_news_digest__summarize_digest",
+      "function": "summarize_digest",
+      "result": {
+        "status": "skipped"
+      },
+      "reason": "이전 단계 실패로 건너뜀"
+    },
+    {
+      "tool_id": "econ_news_digest__summarize_econ_content",
+      "function": "summarize_econ_content",
+      "result": {
+        "status": "skipped"
+      },
+      "reason": "이전 단계 실패로 건너뜀"
+    },
+    {
+      "tool_id": "econ_news_digest__summarize_news",
+      "function": "summarize_news",
+      "result": {
+        "status": "skipped"
+      },
+      "reason": "이전 단계 실패로 건너뜀"
+    },
+    {
+      "tool_id": "econ_news_digest__summarize_news_digest",
+      "function": "summarize_news_digest",
+      "result": {
+        "status": "skipped"
+      },
+      "reason": "이전 단계 실패로 건너뜀"
+    },
+    {
+      "tool_id": "econ_news_digest__send_digest_email",
+      "function": "send_digest_email",
+      "result": {
+        "status": "skipped"
+      },
+      "reason": "이전 단계 실패로 건너뜀"
+    },
+    {
+      "tool_id": "econ_news_digest__send_email_digest",
+      "function": "send_email_digest",
+      "result": {
+        "status": "skipped"
+      },
+      "reason": "이전 단계 실패로 건너뜀"
+    },
+    {
+      "tool_id": "econ_news_digest__send_news_email",
+      "function": "send_news_email",
+      "result": {
+        "status": "skipped"
+      },
+      "reason": "이전 단계 실패로 건너뜀"
+    },
+    {
+      "tool_id": "econ_news_digest__schedule_daily_digest",
+      "function": "schedule_daily_digest",
+      "result": {
+        "status": "skipped"
+      },
+      "reason": "스케줄 설정은 스케줄 페이지에서 관리"
+    },
+    {
+      "tool_id": "econ_news_digest__schedule_daily_task",
+      "function": "schedule_daily_task",
+      "result": {
+        "status": "skipped"
+      },
+      "reason": "스케줄 설정은 스케줄 페이지에서 관리"
+    },
+    {
+      "tool_id": "econ_news_digest__schedule_news_job",
+      "function": "schedule_news_job",
+      "result": {
+        "status": "skipped"
+      },
+      "reason": "스케줄 설정은 스케줄 페이지에서 관리"
+    }
+  ]
+}

@@ -33,9 +33,13 @@ def _collection() -> str:
 
 
 def ensure_collection() -> None:
-    """MCP 도구 컬렉션이 없으면 생성한다."""
+    """MCP 도구 컬렉션이 없으면 생성하고, 항상 로드 상태를 보장한다."""
     client = get_client()
     if client.has_collection(_collection()):
+        try:
+            client.load_collection(_collection())
+        except Exception:
+            pass
         return
 
     client.create_collection(
@@ -45,6 +49,7 @@ def ensure_collection() -> None:
         id_type="string",
         max_length=256,
     )
+    client.load_collection(_collection())
     log.info("MCP 도구 컬렉션 생성: %s", _collection())
 
 
