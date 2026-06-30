@@ -27,18 +27,17 @@ def get_client() -> MilvusClient:
 
 
 def ensure_collection() -> None:
-    """Create the collection if it does not already exist."""
+    """Create the collection if it does not exist, then ensure it is loaded."""
     client = get_client()
-    if client.has_collection(settings.milvus_collection):
-        return
-
-    client.create_collection(
-        collection_name=settings.milvus_collection,
-        dimension=settings.embedding_dim,
-        auto_id=False,
-        id_type="string",
-        max_length=256,
-    )
+    if not client.has_collection(settings.milvus_collection):
+        client.create_collection(
+            collection_name=settings.milvus_collection,
+            dimension=settings.embedding_dim,
+            auto_id=False,
+            id_type="string",
+            max_length=256,
+        )
+    client.load_collection(settings.milvus_collection)
 
 
 # ---------------------------------------------------------------------------

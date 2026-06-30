@@ -55,9 +55,10 @@ def _text_quality(text: str) -> float:
     if len(stripped) < 20:
         return 0.0
 
-    # 반복 문자 비율 체크 (노이즈 감지)
-    unique_ratio = len(set(stripped)) / len(stripped)
-    if unique_ratio < 0.1:
+    # 반복 문자 비율 체크: 특정 문자 하나가 전체의 50% 이상이면 노이즈
+    # (한국어·영어 모두 정상 텍스트에서는 이 조건에 걸리지 않는다)
+    max_char_freq = max(stripped.count(c) for c in set(stripped)) / len(stripped)
+    if max_char_freq > 0.5:
         return 0.0
 
     # 의미있는 단어(2글자 이상) 비율

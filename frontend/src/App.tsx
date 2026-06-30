@@ -1,21 +1,20 @@
 import { Routes, Route } from "react-router-dom";
 import Sidebar from "./components/Sidebar";
 import PlaceholderPage from "./pages/PlaceholderPage";
+import UploadPage from "./pages/UploadPage";
+import ViewerPage from "./pages/ViewerPage";
+import SearchPage from "./pages/SearchPage";
 import AgentDashboardPage from "./pages/AgentDashboardPage";
 import AgentCreatePage from "./pages/AgentCreatePage";
 import AgentFlowPage from "./pages/AgentFlowPage";
 import ToolsPage from "./pages/ToolsPage";
 import SchedulesPage from "./pages/SchedulesPage";
 
-const PLACEHOLDER_ROUTES = [
-  { path: "/upload", title: "문서 업로드", desc: "전처리 파이프라인 연동 예정" },
-  { path: "/viewer", title: "문서 뷰어 (HITL)", desc: "청크 검수·편집 UI 예정" },
-  { path: "/search", title: "RAG 검색", desc: "검색 UI 예정" },
-  { path: "/research", title: "리서치 에이전트", desc: "Supervisor Job 실행 UI 예정" },
-];
-
 const SIDEBAR_ROUTES = [
-  ...PLACEHOLDER_ROUTES,
+  { path: "/upload", title: "문서 업로드" },
+  { path: "/viewer", title: "문서 뷰어 (HITL)" },
+  { path: "/search", title: "RAG 검색" },
+  { path: "/research", title: "리서치 에이전트" },
   { path: "/agents", title: "에이전트 관리" },
   { path: "/agents/create", title: "에이전트 생성" },
   { path: "/agents/flow", title: "흐름도" },
@@ -29,13 +28,10 @@ export default function App() {
       <Sidebar routes={SIDEBAR_ROUTES} />
       <main className="content">
         <Routes>
-          {PLACEHOLDER_ROUTES.map((r) => (
-            <Route
-              key={r.path}
-              path={r.path}
-              element={<PlaceholderPage title={r.title} description={r.desc} />}
-            />
-          ))}
+          <Route path="/upload" element={<UploadPage />} />
+          <Route path="/viewer" element={<ViewerPage />} />
+          <Route path="/search" element={<SearchPage />} />
+          <Route path="/research" element={<PlaceholderPage title="리서치 에이전트" description="Supervisor Job 실행 UI 예정" />} />
           <Route path="/agents" element={<AgentDashboardPage />} />
           <Route path="/agents/create" element={<AgentCreatePage />} />
           <Route path="/agents/flow" element={<AgentFlowPage />} />
