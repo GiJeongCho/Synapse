@@ -6,6 +6,7 @@ import {
   deleteChunks,
 } from "../api/client";
 import type { DocumentItem } from "../types";
+import DocGraphFlow from "../components/flow/DocGraphFlow";
 
 interface Chunk {
   id: string;
@@ -43,6 +44,8 @@ function importanceBg(importance: string, intensity: number): string {
   return `${base}${alpha}`;
 }
 
+type ViewMode = "chunks" | "graph";
+
 export default function ViewerPage() {
   const [docs, setDocs] = useState<DocumentItem[]>([]);
   const [selectedSource, setSelectedSource] = useState<string | null>(null);
@@ -52,6 +55,7 @@ export default function ViewerPage() {
   const [editText, setEditText] = useState("");
   const [savingId, setSavingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<ViewMode>("chunks");
 
   useEffect(() => {
     listDocuments().then(setDocs).catch(() => {});
@@ -60,6 +64,7 @@ export default function ViewerPage() {
   async function selectDoc(source: string) {
     setSelectedSource(source);
     setEditingId(null);
+    setViewMode("chunks");
     setLoadingChunks(true);
     try {
       const data = await getDocumentChunks(source);
@@ -192,6 +197,7 @@ export default function ViewerPage() {
           <p className="muted">청크 로딩 중...</p>
         ) : (
           <>
+            {/* 헤더 */}
             <div
               className="row"
               style={{ marginBottom: 12, flexWrap: "wrap", gap: 8 }}
@@ -200,18 +206,56 @@ export default function ViewerPage() {
                 {selectedSource}
               </h3>
               {doc && (
-                <span
-                  className="badge"
-                  style={{ background: "#4f7cff" }}
-                >
+                <span className="badge" style={{ background: "#4f7cff" }}>
                   {doc.doc_type}
                 </span>
               )}
               <span className="muted" style={{ fontSize: "0.85rem" }}>
                 {chunks.length}개 청크
               </span>
+
+              {/* 탭 스위처 */}
+              <div
+                style={{
+                  marginLeft: "auto",
+                  display: "flex",
+                  gap: 3,
+                  background: "var(--panel)",
+                  border: "1px solid var(--border)",
+                  borderRadius: 8,
+                  padding: 3,
+                }}
+              >
+                {(["chunks", "graph"] as ViewMode[]).map((mode) => (
+                  <button
+                    key={mode}
+                    onClick={() => setViewMode(mode)}
+                    style={{
+                      padding: "5px 14px",
+                      borderRadius: 6,
+                      fontSize: "0.8rem",
+                      background: viewMode === mode ? "var(--accent)" : "transparent",
+                      color: viewMode === mode ? "white" : "var(--muted)",
+                      border: "none",
+                      cursor: "pointer",
+                      fontWeight: viewMode === mode ? 600 : 400,
+                      transition: "background 0.15s, color 0.15s",
+                    }}
+                  >
+                    {mode === "chunks" ? "청크 목록" : "그래프 뷰"}
+                  </button>
+                ))}
+              </div>
             </div>
 
+            {/* 그래프 뷰 */}
+            {viewMode === "graph" && (
+              <DocGraphFlow source={selectedSource!} />
+            )}
+
+            {/* 청크 목록 뷰 */}
+            {viewMode === "chunks" && (
+            <>
             {/* 중요도 범례 */}
             <div
               style={{
@@ -357,6 +401,8 @@ export default function ViewerPage() {
                 )}
               </div>
             ))}
+            </>
+            )}
           </>
         )}
       </div>

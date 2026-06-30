@@ -1,0 +1,8 @@
+{
+  "agent_id": "ai_research_analyst",
+  "name": "Document Deliverer",
+  "description": "Formats and delivers the final academic paper document to the user",
+  "functions": [
+    "deliver_document"
+  ]
+}

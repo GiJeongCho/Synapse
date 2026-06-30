@@ -36,6 +36,31 @@ export async function deleteDocument(source: string): Promise<void> {
   await api.delete(`/api/documents/${encodeURIComponent(source)}`);
 }
 
+export interface GraphNodeData {
+  id: string;
+  node_type: "Document" | "Article" | "Chunk";
+  label: string;
+  sub: string;
+  properties: Record<string, unknown>;
+}
+
+export interface GraphEdgeData {
+  id: string;
+  source: string;
+  target: string;
+  rel_type: "HAS_CHUNK" | "HAS_ARTICLE" | "NEXT_CHUNK" | "NEXT_ARTICLE";
+}
+
+export interface DocumentGraphResponse {
+  nodes: GraphNodeData[];
+  edges: GraphEdgeData[];
+}
+
+export async function getDocumentGraph(source: string): Promise<DocumentGraphResponse> {
+  const { data } = await api.get<DocumentGraphResponse>(`/api/documents/graph/${encodeURIComponent(source)}`);
+  return data;
+}
+
 export async function getDocumentChunks(source: string): Promise<Record<string, unknown>[]> {
   const { data } = await api.get(`/api/documents/chunks/${encodeURIComponent(source)}`);
   return data;
