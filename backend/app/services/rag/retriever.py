@@ -14,6 +14,7 @@ from app.core.logging import logger
 from app.services.rag.vector_store import vector_store
 from app.services.rag.bm25_store import bm25_store
 from app.services.rag.query_rewriter import rewrite_query
+from app.services.rag.graph_store import graph_store
 
 log = logger(__name__)
 
@@ -64,12 +65,24 @@ async def hybrid_retrieve(
     for rank, hit in enumerate(bm25_hits):
         bm25_scores[hit["id"]] = _rrf_score(rank)
 
+    try:
+        graph_hits = await graph_store.search(query=query, limit=k * 3)
+    except Exception:
+        graph_hits = []
+
+    graph_scores: dict[str, float] = {}
+    for rank, hit in enumerate(graph_hits):
+        score = _rrf_score(rank)
+        if hit.get("graph_score", 0) >= 1.0:
+            score += 0.1  # 조문 번호 직접 매칭 보너스
+        graph_scores[hit["id"]] = score
+
     # 5. 합산
-    all_ids = set(vector_scores) | set(bm25_scores)
+    all_ids = set(vector_scores) | set(bm25_scores) | set(graph_scores)
     merged: list[dict] = []
     vector_map = {h["id"]: h for h in vector_hits}
     for cid in all_ids:
-        rrf = vector_scores.get(cid, 0) + bm25_scores.get(cid, 0)
+        rrf = vector_scores.get(cid, 0) + bm25_scores.get(cid, 0) + graph_scores.get(cid, 0)
         hit = vector_map.get(cid, {"id": cid})
         hit["rrf_score"] = round(rrf, 6)
         merged.append(hit)

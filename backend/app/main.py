@@ -9,6 +9,7 @@ from app.api.jobs import router as jobs_router
 from app.api.search import router as search_router
 
 from app.services.rag.bm25_store import bm25_store
+from app.services.rag.graph_store import graph_store
 from app.vectordb.milvus_client import list_sources, get_chunks_by_source
 
 from app.common import setup_library_logging
@@ -56,3 +57,5 @@ async def build_bm25_index():
         all_chunks.extend(chunks)
     bm25_store.build(all_chunks)
     print(f"BM25 인덱스 빌드 완료: {len(all_chunks)}개 청크")
+
+    graph_store.ensure_fulltext_indexes()
