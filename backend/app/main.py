@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.agents import router as agents_router
 from app.api.documents import router as documents_router
 from app.api.jobs import router as jobs_router
+from app.api.meta_agent import router as meta_agent_router
 from app.api.search import router as search_router
 
 from app.services.rag.bm25_store import bm25_store
@@ -31,6 +32,7 @@ app.include_router(agents_router, prefix="/v1/agent/execute", tags=["agents"])
 app.include_router(jobs_router, prefix="/v1/agent/jobs", tags=["jobs"])
 app.include_router(documents_router, prefix="/api/documents", tags=["documents"])
 app.include_router(search_router, prefix="/api/search", tags=["search"])
+app.include_router(meta_agent_router, prefix="/api/meta-agent", tags=["meta-agent"])
 
 
 @app.get("/health/live")

@@ -15,6 +15,28 @@ from app.core.logging import logger
 log = logger(__name__)
 
 
+def _rerank_via_api(query: str, candidates: List[dict], top_k: int) -> List[dict] | None:
+    """rerank API 호출. 실패 시 None 반환."""
+    documents = [c.get("text", "") for c in candidates]
+    url = f"{settings.rerank_api_url.rstrip('/')}/rerank"
+    try:
+        with httpx.Client(timeout=15.0) as client:
+            resp = client.post(url, json={"query": query, "documents": documents})
+            resp.raise_for_status()
+        results = resp.json()
+        # 응답: [{"index": 0, "score": 0.95, ...}, ...]
+        ranked = sorted(results, key=lambda r: r.get("score", 0.0), reverse=True)
+        reranked: List[dict] = []
+        for r in ranked[:top_k]:
+            item = candidates[r["index"]].copy()
+            item["final_score"] = round(float(r.get("score", 0.0)), 6)
+            reranked.append(item)
+        return reranked
+    except Exception as exc:  # noqa: BLE001
+        log.warning("[Reranker] API 호출 실패, 폴백 사용: %s", exc)
+        return None
+
+
 def rerank(query: str, candidates: List[dict], top_k: int = 10) -> List[dict]:
     """외부 reranker API로 재정렬. 실패 시 점수 기반 폴백."""
     texts = [c.get("text", "") for c in candidates]

@@ -83,6 +83,7 @@ def _detect_blocks(text: str) -> list[tuple[int, int]]:
     return blocks
 
 
+
 def block_integrity(chunks: list[str], original_text: str) -> float:
     """Fraction of structural blocks that are NOT split across chunks."""
     blocks = _detect_blocks(original_text)
