@@ -11,16 +11,13 @@ from app.api.jobs import router as jobs_router
 from app.api.meta_agent import router as meta_agent_router
 from app.api.schedules import router as schedules_router
 from app.api.search import router as search_router
-<<<<<<< HEAD
 
 from app.services.rag.bm25_store import bm25_store
 from app.services.rag.graph_store import graph_store
 from app.vectordb.milvus_client import list_sources, get_chunks_by_source
 
-=======
 from app.api.tools import router as tools_router
 from app.api.workflows import router as workflows_router
->>>>>>> fish
 from app.common import setup_library_logging
 from app.config import settings
 

@@ -1,0 +1,107 @@
+{
+  "schedule_id": "sched_agent-7da1b7ed42a0",
+  "agent_id": "agent-7da1b7ed42a0",
+  "started_at": "2026-06-30T08:16:02.311377+00:00",
+  "completed_at": "2026-06-30T08:16:09.960382+00:00",
+  "pipeline_status": "partial_failure",
+  "failure_reason": "email_dispatcher: 도구 실행 중 오류 발생 — SMTP_USER and SMTP_PASSWORD environment variables required",
+  "results": [
+    {
+      "tool_id": "naver_econ_news_agent__fetch_news",
+      "function": "fetch_news",
+      "result": {
+        "status": "success",
+        "result": {
+          "status": "success",
+          "source": "https://news.google.com/rss/search?q=%EB%84%A4%EC%9D%B4%EB%B2%84%20%EA%B2%BD%EC%A0%9C%EB%89%B4%EC%8A%A4&hl=ko&gl=KR&ceid=KR:ko",
+          "articles": [
+            {
+              "title": "네이버페이, ‘Npay 커넥트’ 가맹점 10만개 돌파 - 시사포커스",
+              "summary": "네이버페이, ‘Npay 커넥트’ 가맹점 10만개 돌파 시사포커스",
+              "link": "https://news.google.com/rss/articles/CBMibkFVX3lxTE9Jdm00eUV6WEg2WjQtYm1DbWh0dmkzVF95LWR5YmpFVWJrcHozY0U0Z01SX0c5YlJ3WHhyWnJLRGREZmg4TnRjWS1ON2FhRHRIb0htYUZQclZpZ19MY1lXRTFTZHNfZ3h5QjJVMTJn?oc=5"
+            },
+            {
+              "title": "검색 엔진들의 ‘답변 전쟁’…네이버·다음 ‘포털 패권’ 놓고 재격돌 - v.daum.net",
+              "summary": "검색 엔진들의 ‘답변 전쟁’…네이버·다음 ‘포털 패권’ 놓고 재격돌 v.daum.net",
+              "link": "https://news.google.com/rss/articles/CBMiT0FVX3lxTE41MEFnUUMxX1pqVXVVb1ItN3YwcHR3YnctZXpQcFMzWkE4T0lIMmo1ZTNrQU9BN05mS3Z0RlRKSy1TWmxnX0xwTDFCc3FBOVk?oc=5"
+            },
+            {
+              "title": "국힘 '네이버 뉴스 좌편향' 주장…한국경제·조선비즈가 중도? - 미디어스",
+              "summary": "국힘 '네이버 뉴스 좌편향' 주장…한국경제·조선비즈가 중도? 미디어스",
+              "link": "https://news.google.com/rss/articles/CBMibEFVX3lxTE9UREZ1TUFHNE4zSTJERTRzRkRrbVNBc1YtM2tWdXRYYXE3Q0xaVWtheU1mV2p1VUluVE1NMEo2a0NfSEUyNlhkck5OYnFRZzY5SnlBUlNjZlA2dERvTHB0cjNyeGMwVUFOSWYzU9IBcEFVX3lxTE1wb0llVEd5azE5OEtvUHZtaC1sbjVDMWMtam91WHQtczRPT2RkVnNjZTJEbk5rZ0V0ZVFyNWEzdDE5TDNDZFY5OHQ2dXhGOG9NZTJsTDBodTdhc0VjdHZWRjJoN1ZWaXdGTXh3dmpRc00?oc=5"
+            },
+            {
+              "title": "네이버 뉴스제휴위원회, 2026년 3월 3일부터 신규제휴 심사 시작 - 사회적경제뉴스",
+              "summary": "네이버 뉴스제휴위원회, 2026년 3월 3일부터 신규제휴 심사 시작 사회적경제뉴스",
+              "link": "https://news.google.com/rss/articles/CBMiP0FVX3lxTFBCLTRPQU1Ta2pGb0dMa3R5OC1kaUk1S0VWTU5ON0FjbEN6M3hQNTR3VV8tOFJ5NmRuNW8xUWh3TQ?oc=5"
+            },
+            {
+              "title": "[특징주] 네이버 큰폭 오름세 젠슨 황 효과 - namdonews.com",
+              "summary": "[특징주] 네이버 큰폭 오름세 젠슨 황 효과 namdonews.com",
+              "link": "https://news.google.com/rss/articles/CBMibEFVX3lxTE5DZFNuX3lyRWtFUlg4NjVnV091NVBaTnJfX3I0SFRzVjdDd2FsbFFHcXJOYTlWMVpGSDBPUkR6S1pvWXY2M1B2STNBZ3ItalNWTUNSQThwNDMwOFhTeEZ2Zlh6WFF1bGFsS3pSQ9IBcEFVX3lxTE44Z25ybHg2d0VBSVhHT2RxdDEtXzdod1pxbVh6M01RSkswYzlFUG13eG9CNmx0NTJNdDN1cmxoY0x5aWc5VnFobjBYRUxZeXk3WHlyZ2Yxa1owUzN0eE1tTVVFUVRVNXF5V2laRkgtcnQ?oc=5"
+            },
+            {
+              "title": "시스코코리아, 네이버에 ‘시스코 공식 브랜드 스토어’ 오픈 - 디지털경제뉴스",
+              "summary": "시스코코리아, 네이버에 ‘시스코 공식 브랜드 스토어’ 오픈 디지털경제뉴스",
+              "link": "https://news.google.com/rss/articles/CBMiakFVX3lxTE5OSjFoMGJNXy1BeHFPODVVUGhhVzUweTA2SXU4OVFlMDJWZWpHQmdOTFJFRERBbTFaYXZoZnN2LU15TTVrbWVCN29YQVlMbHJGTkczWmJUMjZoQUhOS19hcGU4Rk0yTTBoMEE?oc=5"
+            },
+            {
+              "title": "[분석] 네이버 회귀 구글과 격차, 다음(daum)의 몰락(?) - 뉴스클레임",
+              "summary": "[분석] 네이버 회귀 구글과 격차, 다음(daum)의 몰락(?) 뉴스클레임",
+              "link": "https://news.google.com/rss/articles/CBMicEFVX3lxTE5XRUppUGtfWmxlSktDUFdzRkRKdFlYNXN4eThONEpMX0d4VHBxWmdzdjJ2bjljbGZSc0hpZ2pfR0ZoTDBwbENkdkJIWVNubHcxU2N3VXJBTjBSb2dIb3FHTjY2NW5CdFVWUWVqZ084TlrSAXRBVV95cUxQWlM3MnU0OWY5Ql9LelJtMjJLOTJCejU3TDR3TGFUWjhCOGRoMDEwSUpPSjVzeUJQckY0Um4tTjRNM0tDUlVfMHdWQ3diWWN0bXl3em5reXpra2wyV2tTOHJfakJEQ1VraXdKcE9uTVZ1NUtsMA?oc=5"
+            },
+            {
+              "title": "[피아Ai 경제뉴스 11월 6일] 네이버의 파격적인AI 전략 전환 - 미디어피아",
+              "summary": "[피아Ai 경제뉴스 11월 6일] 네이버의 파격적인AI 전략 전환 미디어피아",
+              "link": "https://news.google.com/rss/articles/CBMibkFVX3lxTFBXamJJM01RRHI5RHFQY3NvR0JITmRnbTUxZng1VkRfYWp2NDVBZWNHajJ2S2xLZFhtVjB5aGlKa01wYU5mUVotTDg3bVBaVXpiZ19wdFBzUnBGYzFjZ0U2TEk2MS1maXh5dEdfV1F3?oc=5"
+            },
+            {
+              "title": "[AI트렌드③] 네이버는 왜 약해졌나 - 케이트렌디뉴스",
+              "summary": "[AI트렌드③] 네이버는 왜 약해졌나 케이트렌디뉴스",
+              "link": "https://news.google.com/rss/articles/CBMicEFVX3lxTE8zUWFldVFMTGNUTU5zQ05KWlA5dDlZeW55UEJlMFNJZkh2UWlLWUtSbGxVcFZNZ2NOUTkyMmZWZVgweFJyVkFoT1d0NXhvei1qb3NHOWRvN3FyZ1RFQmtXTE1CSUZKSFdxLUJnR1VaWlA?oc=5"
+            },
+            {
+              "title": "네이버, 오는 21일까지 'BIG 멤버십데이' 진행 - 디지털경제뉴스",
+              "summary": "네이버, 오는 21일까지 'BIG 멤버십데이' 진행 디지털경제뉴스",
+              "link": "https://news.google.com/rss/articles/CBMiakFVX3lxTFAwNWdLUjZlUHZ2VV91bHpvLTJFdFlDOXhaODFpeVpxTU1MbnRaTFRaUVNmaTNLMUY0RGNyY2FnVGhGVmZVb1pPY2pjREdEaFloeF9jTExjUnZVLWFaeE5GTFQtVzlXTVVtM3c?oc=5"
+            }
+          ],
+          "content": "네이버페이, ‘Npay 커넥트’ 가맹점 10만개 돌파 - 시사포커스 - 네이버페이, ‘Npay 커넥트’ 가맹점 10만개 돌파 시사포커스\n검색 엔진들의 ‘답변 전쟁’…네이버·다음 ‘포털 패권’ 놓고 재격돌 - v.daum.net - 검색 엔진들의 ‘답변 전쟁’…네이버·다음 ‘포털 패권’ 놓고 재격돌 v.daum.net\n국힘 '네이버 뉴스 좌편향' 주장…한국경제·조선비즈가 중도? - 미디어스 - 국힘 '네이버 뉴스 좌편향' 주장…한국경제·조선비즈가 중도? 미디어스\n네이버 뉴스제휴위원회, 2026년 3월 3일부터 신규제휴 심사 시작 - 사회적경제뉴스 - 네이버 뉴스제휴위원회, 2026년 3월 3일부터 신규제휴 심사 시작 사회적경제뉴스\n[특징주] 네이버 큰폭 오름세 젠슨 황 효과 - namdonews.com - [특징주] 네이버 큰폭 오름세 젠슨 황 효과 namdonews.com\n시스코코리아, 네이버에 ‘시스코 공식 브랜드 스토어’ 오픈 - 디지털경제뉴스 - 시스코코리아, 네이버에 ‘시스코 공식 브랜드 스토어’ 오픈 디지털경제뉴스\n[분석] 네이버 회귀 구글과 격차, 다음(daum)의 몰락(?) - 뉴스클레임 - [분석] 네이버 회귀 구글과 격차, 다음(daum)의 몰락(?) 뉴스클레임\n[피아Ai 경제뉴스 11월 6일] 네이버의 파격적인AI 전략 전환 - 미디어피아 - [피아Ai 경제뉴스 11월 6일] 네이버의 파격적인AI 전략 전환 미디어피아\n[AI트렌드③] 네이버는 왜 약해졌나 - 케이트렌디뉴스 - [AI트렌드③] 네이버는 왜 약해졌나 케이트렌디뉴스\n네이버, 오는 21일까지 'BIG 멤버십데이' 진행 - 디지털경제뉴스 - 네이버, 오는 21일까지 'BIG 멤버십데이' 진행 디지털경제뉴스",
+          "count": 10
+        }
+      }
+    },
+    {
+      "tool_id": "naver_econ_news_agent__news_summarizer",
+      "function": "news_summarizer",
+      "result": {
+        "status": "success",
+        "result": {
+          "status": "success",
+          "summary": "# 네이버 관련 주요 뉴스 요약\n\n• **결제 서비스 확대**: 네이버페이의 'Npay 커넥트' 가맹점이 10만개를 돌파하며 간편결제 생태계 확대 중\n\n• **포털 경쟁 심화**: 네이버와 다음이 AI 기반 답변 서비스를 중심으로 포털 패권 재경쟁에 돌입\n\n• **뉴스 정책 변화**: 네이버 뉴스제휴위원회가 2026년 3월부터 신규 매체 제휴 심사를 재개하며 뉴스 생태계 개편 추진\n\n• **AI 전략 전환**: 네이버가 파격적인 AI 전략 전환으로 포지셔닝 재구성 중\n\n• **브랜드 스토어 확대**: 시스코코리아 등 글로벌 기업들이 네이버에 공식 브랜드 스토어를 오픈하며 B2C 플랫폼 강화\n\n• **주가 상승**: 생성형 AI 활성화 기대감으로 네이버 주가가 큰 폭으로 오름세 보임\n\n• **멤버십 프로모션**: 'BIG 멤버십데이' 진행으로 사용자 확보 및 고객 충성도 강화 추진\n\n• **시장 점유 변화**: 네이버의 성장세에 비해 다음 등 경쟁사들의 시장 입지 약화 지속",
+          "content": "# 네이버 관련 주요 뉴스 요약\n\n• **결제 서비스 확대**: 네이버페이의 'Npay 커넥트' 가맹점이 10만개를 돌파하며 간편결제 생태계 확대 중\n\n• **포털 경쟁 심화**: 네이버와 다음이 AI 기반 답변 서비스를 중심으로 포털 패권 재경쟁에 돌입\n\n• **뉴스 정책 변화**: 네이버 뉴스제휴위원회가 2026년 3월부터 신규 매체 제휴 심사를 재개하며 뉴스 생태계 개편 추진\n\n• **AI 전략 전환**: 네이버가 파격적인 AI 전략 전환으로 포지셔닝 재구성 중\n\n• **브랜드 스토어 확대**: 시스코코리아 등 글로벌 기업들이 네이버에 공식 브랜드 스토어를 오픈하며 B2C 플랫폼 강화\n\n• **주가 상승**: 생성형 AI 활성화 기대감으로 네이버 주가가 큰 폭으로 오름세 보임\n\n• **멤버십 프로모션**: 'BIG 멤버십데이' 진행으로 사용자 확보 및 고객 충성도 강화 추진\n\n• **시장 점유 변화**: 네이버의 성장세에 비해 다음 등 경쟁사들의 시장 입지 약화 지속"
+        }
+      }
+    },
+    {
+      "tool_id": "naver_econ_news_agent__email_dispatcher",
+      "function": "email_dispatcher",
+      "result": {
+        "status": "error",
+        "result": {
+          "status": "error",
+          "message": "SMTP_USER and SMTP_PASSWORD environment variables required"
+        }
+      },
+      "reason": "도구 실행 중 오류 발생 — SMTP_USER and SMTP_PASSWORD environment variables required"
+    },
+    {
+      "tool_id": "naver_econ_news_agent__daily_scheduler",
+      "function": "daily_scheduler",
+      "result": {
+        "status": "skipped"
+      },
+      "reason": "이전 단계 실패로 건너뜀"
+    }
+  ]
+}

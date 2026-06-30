@@ -1,0 +1,8 @@
+{
+  "agent_id": "ai_research_analyst",
+  "name": "Academic Paper Synthesizer",
+  "description": "Analyzes AI trend content and generates comprehensive Korean academic paper with proper structure, citations, and analysis",
+  "functions": [
+    "synthesize_paper"
+  ]
+}

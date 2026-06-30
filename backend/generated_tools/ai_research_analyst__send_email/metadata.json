@@ -1,0 +1,8 @@
+{
+  "agent_id": "ai_research_analyst",
+  "name": "이메일 발송 (표준 SMTP)",
+  "description": "요약 결과를 설정된 수신자에게 메일로 발송",
+  "functions": [
+    "send_email"
+  ]
+}
