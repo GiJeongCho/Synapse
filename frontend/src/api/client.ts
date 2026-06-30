@@ -10,13 +10,56 @@ import type {
   ToolListResponse,
   GeneratedTool,
   ToolExecuteResult,
+  UploadResult,
+  DocumentItem,
 } from "../types";
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL ?? "",
+  baseURL: import.meta.env.VITE_API_URL ?? "http://localhost:8000",
   timeout: 600_000,
 });
 
+// ── 문서 업로드 ──
+export async function uploadDocument(file: File): Promise<UploadResult> {
+  const form = new FormData();
+  form.append("file", file);
+  const { data } = await api.post<UploadResult>("/api/documents/upload", form);
+  return data;
+}
+
+export async function listDocuments(): Promise<DocumentItem[]> {
+  const { data } = await api.get<DocumentItem[]>("/api/documents/list");
+  return data;
+}
+
+export async function deleteDocument(source: string): Promise<void> {
+  await api.delete(`/api/documents/${encodeURIComponent(source)}`);
+}
+
+export async function getDocumentChunks(source: string): Promise<Record<string, unknown>[]> {
+  const { data } = await api.get(`/api/documents/chunks/${encodeURIComponent(source)}`);
+  return data;
+}
+
+export async function editChunk(
+  chunkId: string,
+  newText: string,
+  source: string,
+  docType: string,
+): Promise<void> {
+  await api.post("/api/documents/chunks/edit", {
+    chunk_id: chunkId,
+    new_text: newText,
+    source,
+    doc_type: docType,
+  });
+}
+
+export async function deleteChunks(chunkIds: string[]): Promise<void> {
+  await api.post("/api/documents/chunks/delete", { chunk_ids: chunkIds });
+}
+
+// ── 에이전트 ──
 export async function createAgent(
   req: CreateAgentRequest,
 ): Promise<CreateAgentResponse> {
@@ -80,14 +123,19 @@ export async function runAgent(agentId: string) {
 export async function searchDocuments(
   query: string,
   topK = 10,
+  docTypeFilter?: string,
+  importanceFilter?: string,
 ): Promise<SearchResponse> {
   const { data } = await api.post<SearchResponse>("/api/search/query", {
     query,
     top_k: topK,
+    doc_type_filter: docTypeFilter,
+    importance_filter: importanceFilter,
   });
   return data;
 }
 
+// ── 워크플로우 ──
 export async function listBuiltinWorkflows(): Promise<WorkflowListItem[]> {
   const { data } = await api.get<WorkflowListItem[]>(
     "/api/workflows/builtin",
@@ -113,6 +161,7 @@ export async function getAgentWorkflowGraph(
   return data;
 }
 
+// ── 도구 ──
 export async function listGeneratedTools(): Promise<ToolListResponse> {
   const { data } = await api.get<ToolListResponse>("/api/tools/list");
   return data;
@@ -125,8 +174,20 @@ export async function getToolDetail(
   return data;
 }
 
-// ── 스케줄 API ──
+export async function executeTool(
+  toolId: string,
+  functionName: string,
+  args: Record<string, unknown> = {},
+  timeout = 60,
+): Promise<ToolExecuteResult> {
+  const { data } = await api.post<ToolExecuteResult>(
+    `/api/tools/${toolId}/execute`,
+    { function_name: functionName, arguments: args, timeout },
+  );
+  return data;
+}
 
+// ── 스케줄 ──
 export async function listSchedules() {
   const { data } = await api.get("/api/schedules/list");
   return data as { schedules: any[]; total: number };
@@ -168,17 +229,4 @@ export async function runScheduleNow(scheduleId: string) {
     failure_reason?: string;
     results?: { tool_id: string; function: string; result: Record<string, unknown>; reason?: string }[];
   };
-}
-
-export async function executeTool(
-  toolId: string,
-  functionName: string,
-  args: Record<string, unknown> = {},
-  timeout = 60,
-): Promise<ToolExecuteResult> {
-  const { data } = await api.post<ToolExecuteResult>(
-    `/api/tools/${toolId}/execute`,
-    { function_name: functionName, arguments: args, timeout },
-  );
-  return data;
 }

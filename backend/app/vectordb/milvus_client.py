@@ -27,18 +27,17 @@ def get_client() -> MilvusClient:
 
 
 def ensure_collection() -> None:
-    """Create the collection if it does not already exist."""
+    """Create the collection if it does not exist, then ensure it is loaded."""
     client = get_client()
-    if client.has_collection(settings.milvus_collection):
-        return
-
-    client.create_collection(
-        collection_name=settings.milvus_collection,
-        dimension=settings.embedding_dim,
-        auto_id=False,
-        id_type="string",
-        max_length=256,
-    )
+    if not client.has_collection(settings.milvus_collection):
+        client.create_collection(
+            collection_name=settings.milvus_collection,
+            dimension=settings.embedding_dim,
+            auto_id=False,
+            id_type="string",
+            max_length=256,
+        )
+    client.load_collection(settings.milvus_collection)
 
 
 # ---------------------------------------------------------------------------
@@ -46,13 +45,15 @@ def ensure_collection() -> None:
 # ---------------------------------------------------------------------------
 
 def embed_texts(texts: list[str]) -> list[list[float]]:
-    """Embed a batch of texts via the external embed API and return float vectors."""
-    url = f"{settings.embed_api_url.rstrip('/')}/embed"
-    with httpx.Client(timeout=30.0) as client:
-        resp = client.post(url, json={"texts": texts})
-        resp.raise_for_status()
+    """외부 임베딩 API 호출하여 벡터 반환."""
+    import httpx
+    resp = httpx.post(
+        f"{settings.embed_api_url}/embed",
+        json={"texts": texts},
+        timeout=60.0,
+    )
+    resp.raise_for_status()
     return resp.json()["embeddings"]
-
 
 # ---------------------------------------------------------------------------
 # CRUD
@@ -156,3 +157,20 @@ def list_sources() -> list[dict]:
             seen[src] = r.get("doc_type", "unknown")
 
     return [{"source": s, "doc_type": dt} for s, dt in seen.items()]
+
+    
+
+def drop_all_chunks() -> None:
+    """컬렉션 전체 삭제 후 재생성."""
+    client = get_client()
+    if client.has_collection(settings.milvus_collection):
+        client.drop_collection(settings.milvus_collection)
+    ensure_collection()
+
+
+def delete_chunks_by_source(source: str) -> None:
+    client = get_client()
+    client.delete(
+        collection_name=settings.milvus_collection,
+        filter=f'source == "{source}"',
+    )

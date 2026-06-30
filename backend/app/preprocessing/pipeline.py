@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import hashlib
 import os
+import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -39,6 +40,7 @@ class PipelineResult:
     chunker_used: str
     chunks: list[ProcessedChunk]
     metrics_summary: dict[str, float]
+    all_chunker_metrics: dict[str, dict[str, float]] = None
 
 
 def _chunk_id(source: str, idx: int) -> str:
@@ -46,17 +48,44 @@ def _chunk_id(source: str, idx: int) -> str:
     return f"chunk_{h}_{idx:04d}"
 
 
-def _detect_section(chunk_text: str) -> str | None:
-    """Try to detect which section a chunk belongs to from its content."""
-    import re
-    heading = re.search(r"^#{1,3}\s+(.+)", chunk_text, re.MULTILINE)
-    if heading:
-        return heading.group(1).strip().lower()
+_ARTICLE_RE = re.compile(r'제\s*(\d+)\s*조\s*[\(（]?([^\)\n）]{0,20})')
 
-    for section_name in ["abstract", "introduction", "method", "results",
-                         "discussion", "conclusion", "references", "acknowledgement"]:
-        if section_name in chunk_text[:200].lower():
-            return section_name
+def _extract_article_info(chunk_text: str) -> dict | None:
+    """법률 청크의 첫 300자에서 조문 번호와 제목을 추출한다."""
+    m = _ARTICLE_RE.search(chunk_text[:300])
+    if m:
+        article_no = f"제{m.group(1)}조"
+        title = m.group(2).strip().rstrip("）)") if m.group(2) else None
+        return {"article_no": article_no, "title": title}
+    return None
+
+
+_SECTION_PATTERNS = {
+    "law": [
+        (r"제\s*(\d+)\s*장\s*(.+)", "장"),
+        (r"제\s*(\d+)\s*절\s*(.+)", "절"),
+        (r"제\s*(\d+)\s*조", "조"),
+    ],
+    "paper": [
+        (r"^#{1,3}\s+(.+)", None),
+    ],
+    "news": [],
+}
+
+def _detect_section(chunk_text: str, doc_type: str = "paper") -> str | None:
+    import re
+    patterns = _SECTION_PATTERNS.get(doc_type, [])
+    for pattern, label in patterns:
+        m = re.search(pattern, chunk_text[:300], re.MULTILINE)
+        if m:
+            return m.group(0).strip()
+
+    # 영어 섹션명 폴백
+    for name in ["abstract", "introduction", "background", "related work",
+                 "method", "results", "discussion", "conclusion",
+                 "acknowledgement", "references", "appendix"]:
+        if name in chunk_text[:200].lower():
+            return name
     return None
 
 
@@ -99,12 +128,14 @@ async def run_pipeline(
     best_score = -1.0
     best_metrics: ChunkMetrics | None = None
     best_chunks: list[str] = []
-
+    all_chunker_metrics: dict[str, dict] = {} 
+    
     for name, chunks in candidates.items():
         if not chunks:
             continue
         normalized = normalize_chunks(chunks)
         metrics = compute_metrics(normalized, text, compute_rc=True)
+        all_chunker_metrics[name] = metrics.as_dict() 
         if metrics.total > best_score:
             best_score = metrics.total
             best_chunker = name
@@ -118,8 +149,14 @@ async def run_pipeline(
 
     # --- 4. Score importance for each chunk ---
     processed: list[ProcessedChunk] = []
+    article_map: list[dict] = []
+    last_section = None
     for i, chunk_text in enumerate(best_chunks):
-        section = _detect_section(chunk_text)
+        section = _detect_section(chunk_text, doc_type.value)
+        if section:
+            last_section = section   # 새 섹션 발견하면 갱신
+        else:
+            section = last_section   # 없으면 이전 섹션 유지
         importance = score_chunk_sync(
             chunk_text,
             section=section,
@@ -128,6 +165,13 @@ async def run_pipeline(
         )
         cid = _chunk_id(source, i)
         per_chunk_metrics = compute_metrics([chunk_text], text, compute_rc=False)
+
+        article_info = _extract_article_info(chunk_text) if doc_type == DocType.LAW else None
+        article_map.append({
+            "chunk_id": cid,
+            "article_no": article_info["article_no"] if article_info else None,
+            "title": article_info["title"] if article_info else None,
+        })
 
         processed.append(ProcessedChunk(
             chunk_id=cid,
@@ -157,7 +201,18 @@ async def run_pipeline(
             "user_adjusted": False,
         })
 
+    
+
     upsert_chunks(chunk_ids, texts, vectors, payloads)
+
+    from app.services.rag.graph_store import graph_store
+    graph_store.upsert_document_chunks(
+        source=source,
+        doc_type=doc_type.value,
+        chunk_ids=chunk_ids,
+        sections=[p.section or "" for p in processed],
+        article_map=article_map,
+    )
 
     return PipelineResult(
         source=source,
@@ -165,13 +220,14 @@ async def run_pipeline(
         chunker_used=best_chunker,
         chunks=processed,
         metrics_summary=best_metrics.as_dict(),
+        all_chunker_metrics=all_chunker_metrics,
     )
 
 
 def reembed_and_upsert(chunk_id: str, new_text: str, source: str, doc_type: str) -> dict:
     """Re-embed a single edited chunk and upsert it back to Milvus."""
     vectors = embed_texts([new_text])
-    section = _detect_section(new_text)
+    section = _detect_section(new_text, doc_type)
 
     per_chunk_metrics = compute_metrics([new_text], new_text, compute_rc=False)
     importance = score_chunk_sync(
@@ -195,6 +251,7 @@ def reembed_and_upsert(chunk_id: str, new_text: str, source: str, doc_type: str)
     }
 
     upsert_chunks([chunk_id], [new_text], vectors, [payload])
+
 
     return {
         "chunk_id": chunk_id,

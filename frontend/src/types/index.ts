@@ -1,5 +1,20 @@
-/** 공통 TS 타입 */
+// ── 문서 업로드 ──
+export interface UploadResult {
+  source: string;
+  doc_type: string;
+  extraction_method: string;
+  chunker_used: string;
+  num_chunks: number;
+  metrics_summary: Record<string, number>;
+  all_chunker_metrics: Record<string, Record<string, number>>;
+}
 
+export interface DocumentItem {
+  source: string;
+  doc_type: string;
+}
+
+// ── 에이전트 ──
 export interface AgentRecord {
   agent_id: string;
   user_request: string;
@@ -32,9 +47,15 @@ export interface RegistryListResponse {
 }
 
 export interface SearchResult {
-  chunk_id: string;
+  id: string;
   text: string;
   score: number;
+  final_score: number;
+  rrf_score: number;
+  source: string;
+  doc_type: string;
+  importance: string;
+  importance_score: number;
   metadata?: Record<string, unknown>;
 }
 
@@ -44,6 +65,7 @@ export interface SearchResponse {
   total: number;
 }
 
+// ── 워크플로우 흐름도 ──
 export interface FlowNodeData {
   label: string;
   desc: string;
@@ -85,6 +107,7 @@ export interface WorkflowListItem {
   category: string;
 }
 
+// ── 도구 ──
 export interface GeneratedTool {
   tool_id: string;
   name?: string;

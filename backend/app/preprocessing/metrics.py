@@ -29,11 +29,14 @@ def _token_len(text: str) -> int:
 # ---------------------------------------------------------------------------
 
 def _embed(texts: list[str]) -> np.ndarray:
+    """외부 임베딩 API 호출."""
     import httpx
-    url = f"{settings.embed_api_url.rstrip('/')}/embed"
-    with httpx.Client(timeout=30.0) as client:
-        resp = client.post(url, json={"texts": texts})
-        resp.raise_for_status()
+    resp = httpx.post(
+        f"{settings.embed_api_url}/embed",
+        json={"texts": texts},
+        timeout=60.0,
+    )
+    resp.raise_for_status()
     return np.array(resp.json()["embeddings"], dtype=np.float32)
 
 

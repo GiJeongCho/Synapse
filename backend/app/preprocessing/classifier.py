@@ -34,6 +34,13 @@ _HEURISTIC_PATTERNS: dict[DocType, list[re.Pattern]] = {
         re.compile(r"(?i)\bintroduction\b"),
         re.compile(r"(?i)\bmethod(?:ology)?\b"),
         re.compile(r"\b\d{4}\.\d{4,5}\b"),  # arXiv ID pattern
+
+        re.compile(r"(?i)\b개요\b"),
+        re.compile(r"(?i)\b백서\b"),
+        re.compile(r"(?i)\b연구\b"),
+        re.compile(r"(?i)\b보고서\b"),
+        re.compile(r"(?i)\b서론\b"),
+        re.compile(r"(?i)\b결론\b"),
     ],
     DocType.LAW: [
         re.compile(r"제\s*\d+\s*조"),

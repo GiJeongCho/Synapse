@@ -12,6 +12,9 @@ from typing import List, Optional
 from app.core.config import settings
 from app.core.logging import logger
 from app.services.rag.vector_store import vector_store
+from app.services.rag.bm25_store import bm25_store
+from app.services.rag.query_rewriter import rewrite_query
+from app.services.rag.graph_store import graph_store
 
 log = logger(__name__)
 
@@ -25,23 +28,63 @@ async def vector_retrieve(
     return await vector_store.search(query=query, top_k=top_k, filter_expr=filter_expr)
 
 
-async def hybrid_retrieve(
-    query: str,
-    top_k: Optional[int] = None,
-    filter_expr: Optional[str] = None,
-) -> List[dict]:
-    """Vector(+Graph) 하이브리드 검색.
-
-    TODO: GraphStore 구현 후 ``settings.rag_fusion_k`` 기반 RRF fusion 추가.
-    """
-    return await vector_retrieve(query=query, top_k=top_k, filter_expr=filter_expr)
-
-
 def hybrid_retrieve_sync(
     query: str,
     top_k: Optional[int] = None,
     filter_expr: Optional[str] = None,
 ) -> List[dict]:
     """동기 진입점(기존 API 호환용)."""
-    _ = settings  # 임계값/한도는 vector_store 내부에서 settings 로 적용
     return asyncio.run(hybrid_retrieve(query=query, top_k=top_k, filter_expr=filter_expr))
+
+def _rrf_score(rank: int, k: int = 60) -> float:
+    """Reciprocal Rank Fusion 점수 계산."""
+    return 1.0 / (k + rank)
+
+    
+async def hybrid_retrieve(
+    query: str,
+    top_k: int | None = None,
+    filter_expr: str | None = None,
+) -> list[dict]:
+    query = await rewrite_query(query)
+    k = top_k or settings.vector_search_top_k
+
+    # 1. 벡터 검색
+    vector_hits = await vector_retrieve(query=query, top_k=k * 3, filter_expr=filter_expr)
+
+    # 2. BM25 검색
+    bm25_hits = bm25_store.search(query=query, top_k=k * 3)
+
+    # 3. 벡터 결과에 RRF 점수 부여
+    vector_scores: dict[str, float] = {}
+    for rank, hit in enumerate(vector_hits):
+        vector_scores[hit["id"]] = _rrf_score(rank)
+
+    # 4. BM25 결과에 RRF 점수 부여
+    bm25_scores: dict[str, float] = {}
+    for rank, hit in enumerate(bm25_hits):
+        bm25_scores[hit["id"]] = _rrf_score(rank)
+
+    try:
+        graph_hits = await graph_store.search(query=query, limit=k * 3)
+    except Exception:
+        graph_hits = []
+
+    graph_scores: dict[str, float] = {}
+    for rank, hit in enumerate(graph_hits):
+        score = _rrf_score(rank)
+        if hit.get("graph_score", 0) >= 1.0:
+            score += 0.1  # 조문 번호 직접 매칭 보너스
+        graph_scores[hit["id"]] = score
+
+    # 5. 합산
+    all_ids = set(vector_scores) | set(bm25_scores) | set(graph_scores)
+    merged: list[dict] = []
+    vector_map = {h["id"]: h for h in vector_hits}
+    for cid in all_ids:
+        rrf = vector_scores.get(cid, 0) + bm25_scores.get(cid, 0) + graph_scores.get(cid, 0)
+        hit = vector_map.get(cid, {"id": cid})
+        hit["rrf_score"] = round(rrf, 6)
+        merged.append(hit)
+    merged.sort(key=lambda x: x["rrf_score"], reverse=True)
+    return merged[:k]

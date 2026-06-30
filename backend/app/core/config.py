@@ -25,7 +25,8 @@ class Settings(BaseSettings):
     anthropic_api_key: str = ""
     openai_api_key: str = ""
     gemini_api_key: str = ""
-    llm_model: str = "claude-sonnet-4-20250514"
+    llm_model: str = "claude-sonnet-4-5"
+    # claude-opus-4-5 , claude-sonnet-4-5, claude-haiku-3-5
 
     # ---- Embedding ----
     embedding_model: str = "Qwen/Qwen3-Embedding"
@@ -37,6 +38,12 @@ class Settings(BaseSettings):
     milvus_uri: str = str(_BACKEND_ROOT / "synapse.db")
     milvus_collection: str = "synapse_chunks"
 
+
+    # ---- 외부 AI API ----
+    embed_api_url: str = "http://localhost:5000"
+    rerank_api_url: str = "http://localhost:5000"
+    ocr_api_url: str = "http://localhost:5005"
+    
     # ---- Graph DB (Neo4j) ----
     neo4j_uri: str = "bolt://localhost:7687"
     neo4j_user: str = "neo4j"
