@@ -1,43 +1,38 @@
-from datetime import datetime
-import json
-
 def daily_scheduler(schedule_time="09:00", timezone="Asia/Seoul", **kwargs):
-    """Generate schedule configuration for daily 9 AM KST execution"""
-    schedule_time = kwargs.get("schedule_time") or schedule_time
-    timezone = kwargs.get("timezone") or timezone
-    
+    """Returns cron expression for scheduling - use with external scheduler"""
     try:
+        schedule_time = kwargs.get("schedule_time") or schedule_time
+        timezone = kwargs.get("timezone") or timezone
+        
+        # Parse time
         hour, minute = schedule_time.split(":")
         hour = int(hour)
         minute = int(minute)
         
-        if not (0 <= hour <= 23 and 0 <= minute <= 59):
-            raise ValueError("Invalid time format")
-        
+        # Cron expression: minute hour day month weekday
+        # For 9:00 AM daily: 0 9 * * *
         cron_expression = f"{minute} {hour} * * *"
-        
-        schedule_config = {
-            "cron": cron_expression,
-            "timezone": timezone,
-            "description": f"Daily execution at {schedule_time} {timezone}",
-            "workflow": [
-                "fetch_ai_news",
-                "summarize_news",
-                "send_email"
-            ],
-            "enabled": True
-        }
         
         return {
             "status": "success",
-            "schedule": schedule_config,
-            "cron": cron_expression,
-            "next_run": f"Next execution: Daily at {schedule_time} {timezone}",
-            "message": f"Schedule configured: {cron_expression} ({timezone})"
+            "cron_expression": cron_expression,
+            "timezone": timezone,
+            "schedule_time": schedule_time,
+            "description": f"Runs daily at {schedule_time} {timezone}",
+            "setup_instructions": (
+                "Add this to your crontab (crontab -e):\n"
+                f"TZ={timezone} {cron_expression} /path/to/agent_runner.sh\n\n"
+                "Or use a scheduler service like:"
+                "- GitHub Actions (schedule workflow)\n"
+                "- Cloud Functions (Cloud Scheduler)\n"
+                "- Heroku Scheduler\n"
+                "- systemd timer (Linux)\n\n"
+                "Ensure all environment variables (SMTP_*, ANTHROPIC_API_KEY) are set."
+            )
         }
         
     except Exception as e:
         return {
             "status": "error",
-            "message": f"Schedule configuration failed: {str(e)}"
+            "message": f"Scheduler config error: {str(e)}"
         }

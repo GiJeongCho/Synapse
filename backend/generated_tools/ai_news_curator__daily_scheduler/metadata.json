@@ -1,7 +1,7 @@
 {
   "agent_id": "ai_news_curator",
   "name": "Daily Scheduler",
-  "description": "Schedules daily execution at 9:00 AM KST",
+  "description": "Returns cron expression for daily 9 AM KST execution (use external cron/scheduler)",
   "functions": [
     "daily_scheduler"
   ]

@@ -1,5 +1,16 @@
 [
   {
+    "tool_id": "builtin-rag-search",
+    "name": "RAG Search (Synapse 내장)",
+    "description": "Search the internal Synapse knowledge base of uploaded documents and chunks using hybrid retrieval: vector semantic search (Milvus) + BM25 keyword search + Neo4j graph traversal, fused with RRF and reranked. Use rag_search for the best combined results, vector_search for semantic-only similarity, and graph_search for legal article/clause (제N조) lookup. Retrieves answers from your own ingested corpus rather than the public web.",
+    "uri": "builtin://rag",
+    "capabilities": ["semantic_search", "keyword_search", "graph_search", "document_retrieval", "knowledge_base", "rag"],
+    "schema": {
+      "tools": ["rag_search", "vector_search", "graph_search"]
+    },
+    "category": "retrieval"
+  },
+  {
     "tool_id": "mcp-filesystem",
     "name": "Filesystem MCP",
     "description": "Read, write, list, and manage files and directories on the local filesystem. Supports operations like read_file, write_file, list_directory, create_directory, move_file, search_files, and get_file_info.",

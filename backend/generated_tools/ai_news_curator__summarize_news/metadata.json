@@ -1,7 +1,7 @@
 {
   "agent_id": "ai_news_curator",
-  "name": "AI News Summarizer",
-  "description": "Summarizes AI news articles into Korean digest using Anthropic Claude",
+  "name": "News Summarizer",
+  "description": "Summarizes AI news articles into digestible Korean format using Anthropic Claude",
   "functions": [
     "summarize_news"
   ]
