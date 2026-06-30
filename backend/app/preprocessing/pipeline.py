@@ -81,8 +81,9 @@ def _detect_section(chunk_text: str, doc_type: str = "paper") -> str | None:
             return m.group(0).strip()
 
     # 영어 섹션명 폴백
-    for name in ["abstract", "introduction", "method", "results",
-                 "discussion", "conclusion", "references"]:
+    for name in ["abstract", "introduction", "background", "related work",
+                 "method", "results", "discussion", "conclusion",
+                 "acknowledgement", "references", "appendix"]:
         if name in chunk_text[:200].lower():
             return name
     return None
