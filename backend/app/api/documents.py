@@ -155,6 +155,13 @@ async def list_documents():
     return list_sources()
 
 
+@router.get("/graph/{source}")
+async def get_document_graph(source: str):
+    """Get the Neo4j graph structure (nodes + edges) for a document."""
+    from app.services.rag.graph_store import graph_store
+    return graph_store.get_document_graph(source=source)
+
+
 @router.get("/chunks/{source}")
 async def get_document_chunks(source: str):
     """Get all chunks for a document, sorted by color_intensity (descending)."""

@@ -78,9 +78,26 @@ def save_tool(tool_id: str, code: str, metadata: dict[str, Any] | None = None) -
     return tool_path
 
 
+def _builtin_tools() -> list[dict[str, Any]]:
+    """앱 내부에서 직접 실행되는 내장(builtin) 도구 목록."""
+    from app.services.mcp import rag_tool
+
+    return [{
+        "tool_id": rag_tool.TOOL_ID,
+        "name": "RAG Search (내장)",
+        "description": "Synapse 지식베이스 하이브리드 검색(벡터+BM25+그래프).",
+        "functions": rag_tool.FUNCTIONS,
+        "path": "builtin://rag",
+        "has_code": True,
+        "shared": True,
+        "builtin": True,
+        "category": "retrieval",
+    }]
+
+
 def list_tools(include_shared: bool = True) -> list[dict[str, Any]]:
-    """저장된 모든 MCP 도구 목록을 반환한다 (공용 도구 포함)."""
-    tools = []
+    """저장된 모든 MCP 도구 목록을 반환한다 (내장·공용 도구 포함)."""
+    tools = list(_builtin_tools())
     dirs = [_TOOLS_DIR]
     if include_shared:
         dirs.append(_SHARED_DIR)
@@ -311,7 +328,16 @@ async def execute_tool(
 
     도구 Python 파일을 subprocess로 실행하고 결과를 반환한다.
     env_vars가 제공되면 subprocess 환경변수로 전달한다.
+
+    내장(builtin) 도구(RAG 검색 등)는 앱 내부 서비스(Milvus/Neo4j)에 접근해야
+    하므로 subprocess 대신 in-process 로 직접 실행한다.
     """
+    # 내장 RAG 도구는 in-process 로 위임한다 (지연 import 로 순환참조 회피).
+    from app.services.mcp import rag_tool
+
+    if tool_id == rag_tool.TOOL_ID:
+        return await rag_tool.call(function_name, arguments)
+
     tool_dir = _resolve_tool_dir(tool_id)
     if tool_dir is None:
         return {"error": f"Tool not found: {tool_id}", "status": "not_found"}
