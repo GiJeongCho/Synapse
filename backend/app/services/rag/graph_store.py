@@ -218,6 +218,94 @@ class GraphStore:
             )
             
 
+    def get_document_graph(self, source: str) -> dict:
+        """문서의 전체 그래프 구조(노드 + 엣지)를 반환한다."""
+        try:
+            driver = self._get_driver()
+        except Exception:
+            return {"nodes": [], "edges": []}
+
+        nodes: list[dict] = []
+        edges: list[dict] = []
+        node_set: set[str] = set()
+        edge_set: set[str] = set()
+        doc_id = f"doc::{source}"
+        filename = source.replace("\\", "/").split("/")[-1]
+
+        with driver.session() as session:
+            # 1. Document 노드
+            rec = session.run("MATCH (d:Document {source: $s}) RETURN d", s=source)
+            found = False
+            for r in rec:
+                nodes.append({"id": doc_id, "node_type": "Document", "label": filename, "sub": "", "properties": dict(r["d"])})
+                node_set.add(doc_id)
+                found = True
+            if not found:
+                return {"nodes": [], "edges": []}
+
+            # 2. Chunk 노드 + Document→Chunk HAS_CHUNK 엣지
+            for r in session.run("MATCH (d:Document {source: $s})-[:HAS_CHUNK]->(c:Chunk) RETURN c", s=source):
+                c = dict(r["c"])
+                cid = f"chunk::{c.get('id','')}"
+                if cid not in node_set:
+                    nodes.append({"id": cid, "node_type": "Chunk", "label": c.get("section") or c.get("id", "")[:14], "sub": "", "properties": c})
+                    node_set.add(cid)
+                eid = f"e-hc-{doc_id}-{cid}"
+                if eid not in edge_set:
+                    edges.append({"id": eid, "source": doc_id, "target": cid, "rel_type": "HAS_CHUNK"})
+                    edge_set.add(eid)
+
+            # 3. Article 노드 + Document→Article HAS_ARTICLE 엣지
+            for r in session.run("MATCH (d:Document {source: $s})-[:HAS_ARTICLE]->(a:Article) RETURN a", s=source):
+                a = dict(r["a"])
+                ano = a.get("article_no", "")
+                aid = f"article::{source}::{ano}"
+                if aid not in node_set:
+                    nodes.append({"id": aid, "node_type": "Article", "label": a.get("title") or ano, "sub": ano, "properties": a})
+                    node_set.add(aid)
+                eid = f"e-ha-{doc_id}-{aid}"
+                if eid not in edge_set:
+                    edges.append({"id": eid, "source": doc_id, "target": aid, "rel_type": "HAS_ARTICLE"})
+                    edge_set.add(eid)
+
+            # 4. Article→Chunk HAS_CHUNK 엣지
+            for r in session.run(
+                "MATCH (a:Article {source: $s})-[:HAS_CHUNK]->(c:Chunk) RETURN a.article_no AS ano, c.id AS cid",
+                s=source,
+            ):
+                aid = f"article::{source}::{r['ano']}"
+                chid = f"chunk::{r['cid']}"
+                eid = f"e-ahc-{aid}-{chid}"
+                if eid not in edge_set:
+                    edges.append({"id": eid, "source": aid, "target": chid, "rel_type": "HAS_CHUNK"})
+                    edge_set.add(eid)
+
+            # 5. NEXT_CHUNK 엣지
+            for r in session.run(
+                "MATCH (c1:Chunk {source: $s})-[:NEXT_CHUNK]->(c2:Chunk) RETURN c1.id AS id1, c2.id AS id2",
+                s=source,
+            ):
+                src = f"chunk::{r['id1']}"
+                tgt = f"chunk::{r['id2']}"
+                eid = f"e-nc-{src}-{tgt}"
+                if eid not in edge_set:
+                    edges.append({"id": eid, "source": src, "target": tgt, "rel_type": "NEXT_CHUNK"})
+                    edge_set.add(eid)
+
+            # 6. NEXT_ARTICLE 엣지
+            for r in session.run(
+                "MATCH (a1:Article {source: $s})-[:NEXT_ARTICLE]->(a2:Article) RETURN a1.article_no AS no1, a2.article_no AS no2",
+                s=source,
+            ):
+                src = f"article::{source}::{r['no1']}"
+                tgt = f"article::{source}::{r['no2']}"
+                eid = f"e-na-{src}-{tgt}"
+                if eid not in edge_set:
+                    edges.append({"id": eid, "source": src, "target": tgt, "rel_type": "NEXT_ARTICLE"})
+                    edge_set.add(eid)
+
+        return {"nodes": nodes, "edges": edges}
+
     def close(self) -> None:
         if self._driver is not None:
             self._driver.close()
