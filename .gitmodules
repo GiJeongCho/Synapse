@@ -1,0 +1,6 @@
+[submodule "backend/embedding"]
+	path = backend/embedding
+	url = https://github.com/GiJeongCho/embedding.git
+[submodule "backend/ocr"]
+	path = backend/ocr
+	url = https://github.com/GiJeongCho/OCR.git
