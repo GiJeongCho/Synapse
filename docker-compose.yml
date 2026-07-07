@@ -9,6 +9,13 @@ services:
       NEO4J_AUTH: neo4j/synapse1234
     volumes:
       - neo4j_data:/data
+  qdrant:
+    image: qdrant/qdrant:v1.10.0
+    ports:
+      - "6333:6333"
+    volumes:
+      - qdrant_data:/qdrant/storage
 
 volumes:
   neo4j_data:
+  qdrant_data:
