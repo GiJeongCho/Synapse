@@ -11,7 +11,8 @@ from typing import Any, List, Optional
 from app.core.config import settings
 from app.core.errors.exceptions import VectorDBConnectionError
 from app.core.logging import logger
-from app.vectordb import milvus_client
+# from app.vectordb import milvus_client
+from app.vectordb import qdrant_client
 
 log = logger(__name__)
 
@@ -36,8 +37,8 @@ class VectorStore:
         """
         k = top_k or settings.vector_search_top_k
         try:
-            vector = milvus_client.embed_texts([query])[0]
-            hits = milvus_client.search(query_vector=vector, top_k=k, filter_expr=filter_expr)
+            vector = qdrant_client.embed_texts([query])[0]
+            hits = qdrant_client.search(query_vector=vector, top_k=k, filter_expr=filter_expr)
         except Exception as exc:  # noqa: BLE001
             log.error("[VectorStore] 검색 실패: %s", exc, exc_info=True)
             raise VectorDBConnectionError(details={"cause": str(exc)})
@@ -51,8 +52,8 @@ class VectorStore:
         texts: List[str],
         payloads: List[dict[str, Any]],
     ) -> None:
-        vectors = milvus_client.embed_texts(texts)
-        milvus_client.upsert_chunks(chunk_ids, texts, vectors, payloads)
+        vectors = qdrant_client.embed_texts(texts)
+        qdrant_client.upsert_chunks(chunk_ids, texts, vectors, payloads)
 
 
 vector_store = VectorStore()

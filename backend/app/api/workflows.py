@@ -54,41 +54,18 @@ async def get_builtin_workflow(workflow_name: str) -> dict[str, Any]:
 @router.get("/agent/{agent_id}")
 async def get_agent_workflow(agent_id: str) -> dict[str, Any]:
     """Meta-Agent로 생성된 에이전트의 저장된 그래프 구조를 반환한다."""
-    from app.core.config import settings
     from app.services.agent_registry import store as registry_store
-
     try:
-        registry_store.ensure_collection()
-        from app.vectordb.milvus_client import get_client
-
-        client = get_client()
-        results = client.query(
-            collection_name=settings.meta_registry_collection,
-            filter=f'id == "{agent_id}"',
-            output_fields=["agent_id", "user_request", "graph_structure"],
-            limit=1,
-        )
-
-        if not results:
-            results = client.query(
-                collection_name=settings.meta_registry_collection,
-                filter=f'agent_id == "{agent_id}"',
-                output_fields=["agent_id", "user_request", "graph_structure"],
-                limit=1,
-            )
-
-        if not results:
+        record = registry_store.get(agent_id)
+        if not record:
             raise HTTPException(status_code=404, detail=f"Agent not found: {agent_id}")
-
-        record = results[0]
         graph_json = record.get("graph_structure")
-
         if not graph_json:
             raise HTTPException(
                 status_code=404,
                 detail=f"No graph structure stored for agent: {agent_id}",
             )
-
+        
         import json
 
         if isinstance(graph_json, str):
