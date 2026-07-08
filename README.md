@@ -22,6 +22,7 @@
 
 **실행·환경 상세(가장 최신)**: [`docs/구현_현황.md`](docs/구현_현황.md)  
 **Meta-Agent 아키텍처(설계 원안)**: [`docs/agent.md`](docs/agent.md)  
+
 **폴더 구조 상세**: [`docs/project-structure.md`](docs/project-structure.md)  
 **에이전트 코딩 표준**: [`docs/agent-development-standards-v2.md`](docs/agent-development-standards-v2.md)
 
@@ -277,8 +278,7 @@ docker compose up -d neo4j
 | LLM 분류/생성 미동작 | `backend/.env`의 `ANTHROPIC_API_KEY` 설정 |
 | 메일이 안 감 | `.env`의 `SMTP_*`(앱 비밀번호 16자리) + 에이전트 상세의 필수 설정 ✓ 확인 |
 | Neo4j 연결 실패 | `docker compose ps`, `NEO4J_*` 값 일치 여부 |
-
-더 자세한 문제 해결은 [`docs/시작_가이드.md`](docs/시작_가이드.md) §8 참고.
+ 
 
 ---
 

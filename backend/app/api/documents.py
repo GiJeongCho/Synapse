@@ -12,7 +12,8 @@ from pydantic import BaseModel
 
 from app.config import settings
 from app.preprocessing.pipeline import reembed_and_upsert, run_pipeline
-from app.vectordb.milvus_client import delete_chunks, get_chunks_by_source, list_sources, drop_all_chunks, delete_chunks_by_source
+# from app.vectordb.milvus_client import delete_chunks, get_chunks_by_source, list_sources, drop_all_chunks, delete_chunks_by_source
+from app.vectordb.qdrant_client import delete_chunks, get_chunks_by_source, list_sources, drop_all_chunks, delete_chunks_by_source
 
 router = APIRouter()
 

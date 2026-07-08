@@ -38,6 +38,8 @@ class Settings(BaseSettings):
     milvus_uri: str = str(_BACKEND_ROOT / "synapse.db")
     milvus_collection: str = "synapse_chunks"
 
+    qdrant_uri: str = "http://localhost:6333"
+    qdrant_collection: str = "synapse_chunks"
 
     # ---- 외부 AI API ----
     embed_api_url: str = "http://localhost:5000"

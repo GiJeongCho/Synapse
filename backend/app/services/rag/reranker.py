@@ -44,7 +44,7 @@ def rerank(query: str, candidates: List[dict], top_k: int = 10) -> List[dict]:
     try:
         resp = httpx.post(
             f"{settings.rerank_api_url}/rerank",
-            json={"query": query, "texts": texts, "top_k": top_k},
+            json={"query": query, "documents": texts, "top_n": top_k},
             timeout=30.0,
         )
         resp.raise_for_status()
