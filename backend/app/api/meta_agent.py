@@ -14,7 +14,8 @@ from app.agents.meta_supervisor.graph import create_meta_orchestrator
 from app.core.config import settings
 from app.core.logging import logger
 from app.services.agent_registry import store as registry_store
-from app.vectordb.milvus_client import embed_texts
+# from app.vectordb.milvus_client import embed_texts
+from app.vectordb.qdrant_client import embed_texts
 
 log = logger(__name__)
 
@@ -102,24 +103,15 @@ async def create_agent(req: CreateAgentRequest):
 async def list_registry():
     """등록된 에이전트 목록을 반환한다."""
     try:
-        registry_store.ensure_collection()
-        from app.vectordb.milvus_client import get_client
-        client = get_client()
-        results = client.query(
-            collection_name=settings.meta_registry_collection,
-            filter="",
-            output_fields=["agent_id", "user_request", "mode", "version", "created_at"],
-            limit=100,
-        )
         agents = [
             {
-                "agent_id": r.get("id", r.get("agent_id", "")),
+                "agent_id": r.get("agent_id", ""),
                 "user_request": r.get("user_request", ""),
                 "mode": r.get("mode", ""),
                 "version": r.get("version", 1),
                 "created_at": r.get("created_at", ""),
             }
-            for r in results
+            for r in registry_store.list_all()
         ]
         return RegistryListResponse(agents=agents, total=len(agents))
     except Exception as exc:
@@ -131,7 +123,7 @@ async def list_registry():
 async def delete_agent(agent_id: str):
     """에이전트를 Registry에서 삭제한다.
 
-    연관된 MCP 도구도 함께 정리하되, 도구 청소부(심판) 에이전트가
+    연관된 MCP 도구도 함께 정리하되, 도구 청소부(심판) 에이전트가ㄴ
     공용/필수/타 에이전트 사용 도구를 보호하고 전용 도구만 삭제한다.
     """
     from app.services.mcp.tool_janitor import judge_tool_deletions
@@ -143,31 +135,12 @@ async def delete_agent(agent_id: str):
     )
 
     try:
-        registry_store.ensure_collection()
-        from app.vectordb.milvus_client import get_client
-        client = get_client()
-
-        results = client.query(
-            collection_name=settings.meta_registry_collection,
-            filter=f'id == "{agent_id}"',
-            output_fields=["agent_id", "project_files"],
-            limit=1,
-        )
-        stored_agent_id = results[0].get("agent_id", agent_id) if results else agent_id
+        record = registry_store.get(agent_id)
+        stored_agent_id = record.get("agent_id", agent_id) if record else agent_id
 
         # 실제 도구 폴더는 provisioner의 snake_case agent_id로 prefix되므로
         # project_files를 이용해 정확히 찾아 삭제한다.
-        project_files = None
-        if results:
-            pf_raw = results[0].get("project_files")
-            if isinstance(pf_raw, str):
-                try:
-                    import json as _json
-                    project_files = _json.loads(pf_raw)
-                except (ValueError, TypeError):
-                    project_files = None
-            elif isinstance(pf_raw, dict):
-                project_files = pf_raw
+        project_files = record.get("project_files") if record else None
 
         # 후보 도구 수집: project_files 매칭 + prefix 매칭(공용 도구 제외)
         candidates = list(resolve_agent_tools(agent_id, project_files))
@@ -221,35 +194,9 @@ async def delete_agent(agent_id: str):
 async def get_agent_detail(agent_id: str):
     """특정 에이전트의 상세 정보를 반환한다."""
     try:
-        registry_store.ensure_collection()
-        from app.vectordb.milvus_client import get_client
-        client = get_client()
-        results = client.query(
-            collection_name=settings.meta_registry_collection,
-            filter=f'id == "{agent_id}"',
-            output_fields=registry_store._FIELDS,
-            limit=1,
-        )
-        if not results:
-            results = client.query(
-                collection_name=settings.meta_registry_collection,
-                filter=f'agent_id == "{agent_id}"',
-                output_fields=registry_store._FIELDS,
-                limit=1,
-            )
-        if not results:
+        record = registry_store.get(agent_id)
+        if not record:
             raise HTTPException(status_code=404, detail=f"Agent not found: {agent_id}")
-
-        import json
-        record = results[0]
-        for field in ("agent_spec", "mcp_tools", "project_files", "test_result", "graph_structure"):
-            val = record.get(field)
-            if isinstance(val, str):
-                try:
-                    record[field] = json.loads(val)
-                except (json.JSONDecodeError, TypeError):
-                    pass
-
         return record
     except HTTPException:
         raise
