@@ -14,7 +14,6 @@ from app.agents.meta_supervisor.graph import create_meta_orchestrator
 from app.core.config import settings
 from app.core.logging import logger
 from app.services.agent_registry import store as registry_store
-# from app.vectordb.milvus_client import embed_texts
 from app.vectordb.qdrant_client import embed_texts
 
 log = logger(__name__)
