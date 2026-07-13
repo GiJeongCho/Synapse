@@ -27,7 +27,7 @@ class ChunkEditRequest(BaseModel):
     source: str
     doc_type: str = "paper"
 
-4720
+
 class ChunkDeleteRequest(BaseModel):
     chunk_ids: list[str]
 
