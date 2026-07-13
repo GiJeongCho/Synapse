@@ -82,7 +82,7 @@ class GraphStore:
                     YIELD node AS a, score
                     MATCH (a)-[:HAS_CHUNK]->(c:Chunk)
                     RETURN c.id AS chunk_id, a.source AS source,
-                           a.article_no AS article_no, a.title AS title, score
+                    a.article_no AS article_no, a.title AS title, score
                     LIMIT $limit
                     """,
                     query=query, limit=lim,
