@@ -55,22 +55,14 @@ def _tools_used_by_other_agents(own_ids: set[str]) -> set[str]:
     used: set[str] = set()
     try:
         from app.services.agent_registry import store as registry_store
-        from app.vectordb.milvus_client import get_client
 
-        registry_store.ensure_collection()
-        client = get_client()
-        rows = client.query(
-            collection_name=settings.meta_registry_collection,
-            filter="",
-            output_fields=["agent_id", "project_files"],
-            limit=1000,
-        )
+        rows = registry_store.list_all()
     except Exception as exc:  # noqa: BLE001 — 조회 실패 시 보호 못 해도 삭제는 진행
         log.warning("타 에이전트 도구 조회 실패: %s", exc)
         return used
 
     for row in rows:
-        if row.get("agent_id") in own_ids or row.get("id") in own_ids:
+        if row.get("agent_id") in own_ids:
             continue
         pf = row.get("project_files")
         if isinstance(pf, str):
@@ -93,9 +85,9 @@ async def judge_tool_deletions(
     """후보 도구를 보호/삭제로 분류한다.
 
     반환: {
-      "delete":       [tool_id, ...],          # 실제 삭제할 도구
-      "protected":    [{tool_id, reason}, ...],# 하드 규칙으로 보호
-      "kept_by_judge":[{tool_id, reason}, ...],# 심판이 재사용 가능 판단
+        "delete":       [tool_id, ...],          # 실제 삭제할 도구
+        "protected":    [{tool_id, reason}, ...],# 하드 규칙으로 보호
+        "kept_by_judge":[{tool_id, reason}, ...],# 심판이 재사용 가능 판단
     }
     """
     shared_ids = {t["tool_id"] for t in list_tools() if t.get("shared")}

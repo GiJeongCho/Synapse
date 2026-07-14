@@ -21,7 +21,8 @@ from app.preprocessing.chunkers.split_merge import (
 from app.preprocessing.metrics import ChunkMetrics, compute_metrics
 from app.preprocessing.normalize import normalize_chunks
 from app.preprocessing.scoring import ImportanceResult, score_chunk_sync
-from app.vectordb.milvus_client import embed_texts, upsert_chunks
+# from app.vectordb.milvus_client import embed_texts, upsert_chunks
+from app.vectordb.qdrant_client import embed_texts, upsert_chunks
 
 
 @dataclass

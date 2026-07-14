@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import os
 import uuid
 from pathlib import Path
@@ -12,7 +13,10 @@ from pydantic import BaseModel
 
 from app.config import settings
 from app.preprocessing.pipeline import reembed_and_upsert, run_pipeline
-from app.vectordb.milvus_client import delete_chunks, get_chunks_by_source, list_sources, drop_all_chunks, delete_chunks_by_source
+# from app.vectordb.milvus_client import delete_chunks, get_chunks_by_source, list_sources, drop_all_chunks, delete_chunks_by_source
+from app.vectordb.qdrant_client import delete_chunks, get_chunks_by_source, list_sources, drop_all_chunks, delete_chunks_by_source
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -77,7 +81,7 @@ def _clean_text(text: str) -> str:
 def _extract_text(path: Path, ext: str) -> tuple[str, str]:
     if ext == ".pdf":
         text = _extract_with_fitz(path)
-        if _needs_ocr(text):
+        if _needs_ocr(text) or _count_pdf_tables(path) >= _OCR_TABLE_THRESHOLD:
             ocr_text = _extract_via_ocr(path)
             if ocr_text:
                 return _clean_text(ocr_text), "ocr"
@@ -118,6 +122,24 @@ def _extract_with_fitz(path: Path) -> str:
         return ""
 
 
+_OCR_TABLE_THRESHOLD = 3  # 이 개수 이상 표가 있으면 OCR API 사용
+
+def _count_pdf_tables(path: Path) -> int:
+    """fitz(PyMuPDF)로 PDF 안의 표 개수를 센다."""
+    try:
+        import fitz
+        doc = fitz.open(str(path))
+        total = 0
+        for page in doc:
+            try:
+                total += len(page.find_tables().tables)
+            except Exception:
+                continue
+        return total
+    except Exception:
+        return 0
+
+
 def _needs_ocr(text: str) -> bool:
     """텍스트 품질이 낮으면 OCR 필요 판단."""
     if not text or len(text.strip()) < 100:
@@ -140,8 +162,20 @@ def _extract_via_ocr(path: Path) -> str:
             )
         resp.raise_for_status()
         data = resp.json()
+        # OCR 서버 응답: {"results": [{"text": ..., "tables": [...]}, ...]}
+        if isinstance(data.get("results"), list):
+            parts: list[str] = []
+            for page in data["results"]:
+                page_text = (page.get("text") or "").strip()
+                if page_text:
+                    parts.append(page_text)
+                for table_md in page.get("tables") or []:
+                    if table_md.strip():
+                        parts.append(table_md)
+            return "\n\n".join(parts)
         return data.get("markdown", data.get("text", ""))
-    except Exception:
+    except Exception as e:
+        logger.warning("OCR API 호출 실패 (%s) → fitz로 폴백: %s", settings.ocr_api_url, e)
         return ""
 
 

@@ -23,29 +23,16 @@ router = APIRouter()
 
 def _known_agent_prefixes() -> set[str]:
     """레지스트리에 등록된 에이전트의 식별자/도구 접두사를 모두 수집한다."""
-    import json as _json
-
-    from app.core.config import settings
     from app.services.agent_registry import store as registry_store
-    from app.vectordb.milvus_client import get_client
 
     known: set[str] = set()
-    registry_store.ensure_collection()
-    client = get_client()
-    rows = client.query(
-        collection_name=settings.meta_registry_collection,
-        filter="",
-        output_fields=["agent_id", "project_files"],
-        limit=1000,
-    )
-    for r in rows:
-        for key in ("id", "agent_id"):
-            v = r.get(key)
-            if v:
-                known.add(str(v))
+    for r in registry_store.list_all():
+        if r.get("agent_id"):
+            known.add(str(r["agent_id"]))
         pf = r.get("project_files")
         if isinstance(pf, str):
             try:
+                import json as _json
                 pf = _json.loads(pf)
             except (ValueError, TypeError):
                 pf = None
